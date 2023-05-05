@@ -69,15 +69,10 @@ impl BiotCollection {
     /// Display the biot collection
     pub fn draw(&self) {
         for biot in self.biots.iter() {
-
-            if biot.intelligence>0. {
-                let size = 14.*(biot.photosynthesis+biot.attack+biot.defense+biot.motion);
-                draw_rectangle(biot.pos.x-size/2.,biot.pos.y-size/2., size, size, GREEN);
-            }
-            draw_circle(biot.pos.x,biot.pos.y, 7.*(biot.photosynthesis+biot.attack+biot.defense+biot.motion), GREEN);
-            draw_circle(biot.pos.x,biot.pos.y, 7.*(biot.attack+biot.defense+biot.motion), RED);
-            draw_circle(biot.pos.x,biot.pos.y, 7.*(biot.defense+biot.motion), DARKBLUE);
-            draw_circle(biot.pos.x,biot.pos.y, 7.*(biot.motion), BLUE);
+            
+            draw_circle(biot.pos.x,biot.pos.y, 3., RED);
+            draw_circle(biot.pos.x+6.,biot.pos.y, 3., RED);
+            draw_circle(biot.pos.x-6.,biot.pos.y, 3., RED);
 
         }
     }
