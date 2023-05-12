@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use crate::ants::{WorkerAnt, TreePoint, Colony};
 use rstar::RTree;
-use std::collections::HashSet;
+// use std::collections::HashSet;
 
 /// A collection of worker ants. Responsible for handling interactions between biots
 pub struct WorkerAntCollection {
@@ -13,7 +13,7 @@ impl WorkerAntCollection {
     pub fn new(n: usize) -> Self {
         let mut s = Self { worker_ants: Vec::new() };
         for _ in 0..n {
-            s.worker_ants.push(WorkerAnt::worker_ant(/*i dont work pls fix me and put the pos of the colony so the ants spawn in me */));
+            s.worker_ants.push(WorkerAnt::worker_ant(vec2(screen_width(), screen_height())));
         }
         s
     }
@@ -69,11 +69,9 @@ impl WorkerAntCollection {
         // self.worker_ants.append(&mut new);
     }
     /// Display the biot collection
-    pub fn draw(&self) {
+    pub fn draw_ant(&self) {
         for worker_ant in self.worker_ants.iter() {
-            
             draw_circle(worker_ant.pos.x,worker_ant.pos.y, 3., RED);
-
         }
     }
     /// The number of biots currently in our collection
@@ -81,3 +79,18 @@ impl WorkerAntCollection {
         self.worker_ants.len()
     }
 }
+pub struct ColonyCollection {
+    colony: Vec<Colony>
+}
+
+impl ColonyCollection {
+    pub fn new(&self) -> Colony {
+        let mut q = Self { colony: Vec::new() };
+        q.colony.push(Colony::colony());
+        q
+    }
+    pub fn draw_colony(&self) {
+        draw_circle(colony.pos.x, colony.pos.y, , 6., BROWN);
+    }
+    
+  }

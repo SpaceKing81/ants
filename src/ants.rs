@@ -47,7 +47,10 @@ impl WorkerAnt {
         let mut s = Self {
             life: 0.,
             pos,
-            speed: vec2(0., 0.),
+            speed: vec2(
+                rand::gen_range(0., 1.)*4., 
+                rand::gen_range(0., 1.)*4.
+            ),
             age: 0,
             // genome,
             // attack: 0.,
@@ -189,17 +192,17 @@ fn distance_2(&self, point: &<<Self as rstar::RTreeObject>::Envelope as rstar::E
 
 pub struct Colony {
   life:f32,
-  foodLevel:f32,
+  food_level:f32,
   pub pos:Vec2,
 }
-
 impl Colony {
-  pub fn new_colony(&self) -> Colony {
-    let colony = Colony {
-      life:10.,
-      foodLevel:10.,
-      pos: vec2(screen_width()/2., screen_height()/2.)
-    };
-    return colony;
-  }
+    pub fn colony(&self) -> Self {
+        let q = Colony {
+            life:10.,
+            food_level:10.,
+            pos: vec2(screen_width()/2., screen_height()/2.)
+        };
+        q
+    }
 }
+

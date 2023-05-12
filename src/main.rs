@@ -3,7 +3,7 @@ use macroquad::prelude::*;
 mod ants;
 mod ants_collection;
 
-use ants_collection::WorkerAntCollection;
+use ants_collection::{WorkerAntCollection, ColonyCollection};
 
 fn window_conf() -> Conf {
     Conf {
@@ -18,11 +18,12 @@ async fn main() {
 
     rand::srand(miniquad::date::now().to_bits());
     let mut ants = WorkerAntCollection::new(600);
+    let colony = ColonyCollection::new;
 
     loop {
         ants.step();
         clear_background(Color::new(0.,0.,0.1,1.0));
-        ants.draw();
+        ants.draw_ant();
         draw_text(&format!("FPS: {}, ants: {}", get_fps(), ants.len()),
             screen_width()-200., screen_height()-5.,
             18.,
