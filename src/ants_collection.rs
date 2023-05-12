@@ -90,7 +90,7 @@ impl ColonyCollection {
         q
     }
     pub fn draw_colony(&self) {
-        draw_circle(colony.pos.x, colony.pos.y, , 6., BROWN);
+        draw_circle(self.colony.pos.x, self.colony.pos.y, 6., BROWN);
     }
     
   }
