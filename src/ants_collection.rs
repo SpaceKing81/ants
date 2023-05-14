@@ -10,10 +10,10 @@ pub struct WorkerAntCollection {
 
 impl WorkerAntCollection {
     /// Create n worker ants
-    pub fn new(n: usize) -> Self {
+    pub fn new(n: usize, colony:ColonyImplimintation) -> Self {
         let mut s = Self { worker_ants: Vec::new() };
         for _ in 0..n {
-            s.worker_ants.push(WorkerAnt::worker_ant(vec2(screen_width(), screen_height())));
+            s.worker_ants.push(WorkerAnt::worker_ant(vec2(colony.colony.pos.x, colony.colony.pos.y)));
         }
         s
     }
@@ -25,7 +25,7 @@ impl WorkerAntCollection {
             self.worker_ants
                 .iter()
                 .enumerate()
-                .map(|(n,biot)|TreePoint {x:biot.pos.x as f64, y:biot.pos.y as f64, idx:n})
+                .map(|(n,ant)|TreePoint {x:ant.pos.x as f64, y:ant.pos.y as f64, idx:n})
                 .collect());
         // Move and reproduce worker_ants
         for n in 0..(self.worker_ants.len()) {
@@ -79,18 +79,17 @@ impl WorkerAntCollection {
         self.worker_ants.len()
     }
 }
-pub struct ColonyCollection {
-    colony: Vec<Colony>
+pub struct ColonyImplimintation {
+    colony: Colony
 }
 
-impl ColonyCollection {
-    pub fn new(&self) -> Colony {
-        let mut q = Self { colony: Vec::new() };
-        q.colony.push(Colony::colony());
+impl ColonyImplimintation {
+    pub fn new() -> ColonyImplimintation {
+        let q = Self { colony: Colony::colony() };
         q
     }
     pub fn draw_colony(&self) {
-        draw_circle(self.colony.pos.x, self.colony.pos.y, 6., BROWN);
+            draw_circle(self.colony.pos.x,self.colony.pos.y, 10., BROWN);
     }
     
   }

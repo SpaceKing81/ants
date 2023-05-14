@@ -39,7 +39,7 @@ pub struct WorkerAnt {
 
 impl WorkerAnt {
     /// Create a worker ant
-    pub fn worker_ant(pos:Vec2) -> Self {
+    pub fn worker_ant(pos:Vec2<>) -> Self {
         // let mut genome = ['u';13];
         // for letter in genome.iter_mut() {
         //     *letter = LETTERS[rand::gen_range(0, LETTERS.len() as u32) as usize];
@@ -48,8 +48,8 @@ impl WorkerAnt {
             life: 0.,
             pos,
             speed: vec2(
-                rand::gen_range(0., 1.)*4., 
-                rand::gen_range(0., 1.)*4.
+                rand::gen_range(0., 1.)*2., 
+                rand::gen_range(0., 1.)*2.
             ),
             age: 0,
             // genome,
@@ -88,23 +88,21 @@ impl WorkerAnt {
         self.pos += self.speed;
         self.pos.x = modulus(self.pos.x, screen_width());
         self.pos.y = modulus(self.pos.y, screen_height());
-        // self.speed *= 0.9;
+        self.speed *= 0.9;
         // self.life += (self.photosynthesis - self.metabolism())*0.4;
         // if rand::gen_range(0., 1.) < 0.2*self.motion {
-            let speed = 7.;
+            let speed = 5.;
             // if self.intelligence > 0. {
-                if let Some(feed_dir) = feed_dir {
-                    self.accelerate(feed_dir, speed);
-            //     } else {
-            //         self.random_move(speed)
-            //     }
+                // if let Some(feed_dir) = feed_dir {
+                    // self.accelerate(feed_dir, speed);
+                // } else {
+                    // self.random_move(speed)
+                // }
             // } else {
-            //     self.random_move(speed)
+                self.random_move(speed);
             // }
-        }
-        if self.pos.x<0. ||self.pos.y<0. ||self.pos.y>screen_height() ||self.pos.x>screen_width() {
-          self.life = 0.;
-        }
+        // }
+
         self.age += 1;
         offspring
     }
@@ -196,12 +194,14 @@ pub struct Colony {
   pub pos:Vec2,
 }
 impl Colony {
-    pub fn colony(&self) -> Self {
-        let q = Colony {
+    pub fn colony() -> Self {
+        let mut q = Colony {
             life:10.,
             food_level:10.,
             pos: vec2(screen_width()/2., screen_height()/2.)
         };
+        q.pos.x = modulus(q.pos.x, screen_width());
+        q.pos.y = modulus(q.pos.y, screen_height());
         q
     }
 }
