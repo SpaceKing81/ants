@@ -65,7 +65,6 @@ impl WorkerAnt {
     // Compute the evolution of the biot for one simulation step
     pub fn step(&mut self, rtree: &RTree<TreePoint>, feed_dir: Option<Vec2>) -> Option<WorkerAnt> {
         let mut offspring = None;
-        let adult_factor = 4.;
 
             // put in colony purview, reproduction if life is big enough
 
@@ -118,7 +117,7 @@ impl WorkerAnt {
     //     }
     // }
     pub fn dead(&self) -> bool { //needs to be dead(&mut self) for it to be able to edit the dead property
-        if (self.life <= 0. || self.age >= 10000) {
+        if self.life <= 0. || self.age >= 10000 {
             return true;
         }
         false
@@ -237,14 +236,14 @@ impl Food {
     }
     pub fn aggergate(food: &mut Vec<Self>, i:usize, j:usize,) {
 
-            let distx = (food[i].pos.x - food[j].pos.x);
-            let disty = (food[i].pos.y - food[j].pos.y);
+            let distx = food[i].pos.x - food[j].pos.x;
+            let disty = food[i].pos.y - food[j].pos.y;
             let distr = ((disty*disty)+(distx+distx)).sqrt();
 
             if (distr) < 10. {
 
-                    food[i].pos.x += (distx*0.5);
-                    food[i].pos.y += (disty*0.5);
+                    food[i].pos.x += distx*0.5;
+                    food[i].pos.y += disty*0.5;
                     food[i].size += food[j].size;
                     food[j].exist = false;
 
