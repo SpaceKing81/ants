@@ -1,4 +1,4 @@
-use macroquad::prelude::{Vec2, vec2, rand, screen_width, screen_height};
+use macroquad::{prelude::{Vec2, vec2, rand, screen_width, screen_height}, miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC};
 use rstar::{AABB, PointDistance, RTree, RTreeObject};
 
 // / Elements of the biots' genomes:
@@ -27,6 +27,7 @@ pub struct WorkerAnt {
     pub pos: Vec2,
     speed: Vec2,
     age: u32,
+    pub dead: bool
 
     // Genome
     // genome: [char; 13],
@@ -47,11 +48,9 @@ impl WorkerAnt {
         let mut s = Self {
             life: 0.,
             pos,
-            speed: vec2(
-                rand::gen_range(0., 1.)*2., 
-                rand::gen_range(0., 1.)*2.
-            ),
+            speed: vec2( 2., 2.),
             age: 0,
+            dead: false,
             // genome,
             // attack: 0.,
             // defense: 0.,
@@ -67,9 +66,6 @@ impl WorkerAnt {
     pub fn step(&mut self, rtree: &RTree<TreePoint>, feed_dir: Option<Vec2>) -> Option<WorkerAnt> {
         let mut offspring = None;
         let adult_factor = 4.;
-        if self.life >= self.base_life()*adult_factor {
-            let close_by = rtree.nearest_neighbor_iter_with_distance_2(&[self.pos.x as f64, self.pos.y as f64])
-                .nth(5);
 
             // put in colony purview, reproduction if life is big enough
 
@@ -84,7 +80,8 @@ impl WorkerAnt {
             //     offspring = Some(off);
             //     self.life = (adult_factor-1.)* self.base_life();
             // }
-        }
+
+
         self.pos += self.speed;
         self.pos.x = modulus(self.pos.x, screen_width());
         self.pos.y = modulus(self.pos.y, screen_height());
@@ -120,8 +117,12 @@ impl WorkerAnt {
     //         }
     //     }
     // }
-    pub fn dead(&self) -> bool {
-        self.life <= 0. || self.age >= 10000
+    pub fn dead(&self) -> bool { //needs to be dead(&mut self) for it to be able to edit the dead property
+        if (self.life <= 0. || self.age >= 10000) {
+            return true;
+        }
+        false
+
     }
     // Are we stronger than this other biot?
     // pub fn stronger(&self, other: &Self) -> bool {
@@ -161,7 +162,14 @@ impl WorkerAnt {
     // fn weight(&self) -> f32 {
     //     self.attack + self.defense + self.photosynthesis + self.motion
     // }
-
+    pub fn turn_dead(&mut self) -> Food {
+        let f:Food = Food {
+            pos: self.pos,
+            size: self.life,
+            exist: true,
+        };
+        f
+    }
 }
 
 /// Helper structure used for the rstar geometric data structure. This data structure is used for
@@ -195,14 +203,54 @@ pub struct Colony {
 }
 impl Colony {
     pub fn colony() -> Self {
-        let mut q = Colony {
+
+        let posx = screen_width()/2.;
+        let posy = screen_height()/2.;
+
+        // let posx = modulus(posx, screen_width());
+        // let posy = modulus(posy, screen_height());
+
+        let q = Colony {
             life:10.,
             food_level:10.,
-            pos: vec2(screen_width()/2., screen_height()/2.)
+            pos: vec2(posx, posy)
         };
-        q.pos.x = modulus(q.pos.x, screen_width());
-        q.pos.y = modulus(q.pos.y, screen_height());
         q
     }
+
 }
+
+pub struct Food {
+    pub pos: Vec2,
+    pub size: f32,
+    pub exist: bool
+}
+
+impl Food {
+    pub fn food(pos:Vec2) -> Self{
+        let f = Self {
+            pos,
+            size: 2.,
+            exist: true,
+        };
+        f
+    }
+    pub fn aggergate(food: &mut Vec<Self>, i:usize, j:usize,) {
+
+            let distx = (food[i].pos.x - food[j].pos.x);
+            let disty = (food[i].pos.y - food[j].pos.y);
+            let distr = ((disty*disty)+(distx+distx)).sqrt();
+
+            if (distr) < 10. {
+
+                    food[i].pos.x += (distx*0.5);
+                    food[i].pos.y += (disty*0.5);
+                    food[i].size += food[j].size;
+                    food[j].exist = false;
+
+                }
+            }
+        
+}
+
 
