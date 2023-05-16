@@ -8,14 +8,14 @@ use ants_collection::{WorkerAntCollection, ColonyImplimintation, FoodCollection}
 fn window_conf() -> Conf {
 
 // Personal screen size for best results
-    let Pdx = 2048;
-    let Pdy = 1152;
+    let pdx = 2048;
+    let pdy = 1152;
 
     Conf {
         window_title: "Ants".to_owned(),
         fullscreen: true,
-        window_height:Pdy,
-        window_width:Pdx,
+        window_height:pdy,
+        window_width:pdx,
         ..Default::default()
     }
 }

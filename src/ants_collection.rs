@@ -20,7 +20,7 @@ impl WorkerAntCollection {
     /// Compute one step of the simulation.
     pub fn step(&mut self) {
         let mut new : Vec<WorkerAnt> = Vec::new();
-        let mut dead: Vec<Food> = Vec::new();
+        // let mut dead: Vec<Food> = Vec::new();
         // R-star datastructure used for quickly locating neighbors
         let tree : RTree<TreePoint> = RTree::bulk_load(
             self.worker_ants
@@ -30,7 +30,7 @@ impl WorkerAntCollection {
                 .collect());
         // Move and reproduce worker_ants
         for n in 0..(self.worker_ants.len()) {
-            let mut feed_dir : Option<Vec2> = None;
+            // let mut feed_dir : Option<Vec2> = None;
 
             // if self.worker_ants[n].intelligence > 0. {
             //     for (other, d2) in tree.nearest_neighbor_iter_with_distance_2(&[self.worker_ants[n].pos.x as f64, self.worker_ants[n].pos.y as f64]) {
@@ -47,7 +47,7 @@ impl WorkerAntCollection {
             //         }
             //     }
             // }
-            let off = self.worker_ants[n].step(&tree, feed_dir);
+            let off = self.worker_ants[n].step(&tree, None);
             if let Some(offspring) = off {
                 new.push(offspring);
             }
