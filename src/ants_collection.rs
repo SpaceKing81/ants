@@ -96,8 +96,8 @@ pub struct ColonyImplimintation {
 }
 
 impl ColonyImplimintation {
-    pub fn new() -> ColonyImplimintation {
-        let q = Self { colony: Colony::colony() };
+    pub fn new(posx:f32, posy:f32) -> ColonyImplimintation {
+        let q = Self { colony: Colony::colony(posx, posy) };
         q
     }
 
@@ -128,38 +128,43 @@ impl FoodCollection {
         }
         f
     }
-
+    
     pub fn step(&mut self) {
         let mut new : Vec<Food> = Vec::new();
         // R-star datastructure used for quickly locating neighbors
         let tree : RTree<TreePoint> = RTree::bulk_load(
             self.food
-                .iter()
-                .enumerate()
-                .map(|(n,piece)|TreePoint {x:piece.pos.x as f64, y:piece.pos.y as f64, idx:n})
-                .collect());
-
-
+            .iter()
+            .enumerate()
+            .map(|(n,piece)|TreePoint {x:piece.pos.x as f64, y:piece.pos.y as f64, idx:n})
+            .collect());
+        
+        
         let mut visited : HashSet<usize> = HashSet::new();
         for f in tree.iter() {
             visited.insert(f.idx);
-
+            
             for s in tree.locate_within_distance([f.x, f.y], 50.) //FIXME 30 is hardcoded
             {
                 if ! visited.contains(&s.idx) { // Don't do it twice
-                Food::aggergate( &mut self.food, f.idx, s.idx);
+                    Food::aggergate( &mut self.food, f.idx, s.idx);
                 }
             }
         }
-        
 
-        self.food.append(&mut new);  
+        FoodCollection::new(1);
+    
+        self.food.append(&mut new);
+        self.food.retain(|b| b.exist);
     }
 
-    pub fn draw_piece(&self) {
-        for food in self.food.iter() {
-            draw_circle(food.pos.x,food.pos.y, food.size, ORANGE);
-        }
+pub fn draw_piece(&self) {
+    for food in self.food.iter() {
+        draw_circle(food.pos.x,food.pos.y, food.size, ORANGE);
+    }
+    }
+    pub fn len(&self) -> usize {
+        self.food.len()
     }
 
 

@@ -201,11 +201,8 @@ pub struct Colony {
   pub pos:Vec2,
 }
 impl Colony {
-    pub fn colony() -> Self {
-
-        let posx = screen_width()/2.;
-        let posy = screen_height()/2.;
-
+    pub fn colony(posx:f32, posy:f32) -> Self {
+    
         // let posx = modulus(posx, screen_width());
         // let posy = modulus(posy, screen_height());
 
@@ -236,19 +233,30 @@ impl Food {
     }
     pub fn aggergate(food: &mut Vec<Self>, i:usize, j:usize,) {
 
-            let distx = food[i].pos.x - food[j].pos.x;
-            let disty = food[i].pos.y - food[j].pos.y;
-            let distr = ((disty*disty)+(distx+distx)).sqrt();
+        let distx = food[i].pos.x - food[j].pos.x;
+        let disty = food[i].pos.y - food[j].pos.y;
+        let distr = (((disty*disty)+(distx+distx)).sqrt())-food[i].size-food[j].size;
 
-            if (distr) < 10. {
-
-                    food[i].pos.x += distx*0.5;
-                    food[i].pos.y += disty*0.5;
-                    food[i].size += food[j].size;
-                    food[j].exist = false;
-
-                }
+        if (distr) < 10. {
+            if food[i].size > food[j].size {    
+                food[i].pos.x += distx*food[j].size/food[i].size;
+                food[i].pos.y += disty*food[j].size/food[i].size;
+                food[i].size += food[j].size;
+                food[j].exist = false;
+            } else if food[j].size > food[i].size {
+                food[j].pos.x += distx*food[i].size/food[j].size;
+                food[j].pos.y += disty*food[i].size/food[j].size;
+                food[j].size += food[i].size;
+                food[i].exist = false;
+            } else {
+                food[j].pos.x += distx*0.5;
+                food[j].pos.y += disty*0.5;
+                food[j].size += food[i].size;
+                food[i].exist = false;
             }
+
+        }
+    }
         
 }
 

@@ -25,10 +25,10 @@ async fn main() {
 
     // rand::srand(miniquad::date::now().to_bits());
 
-    let colony = ColonyImplimintation::new();
+    let colony = ColonyImplimintation::new(screen_width()/2., screen_height()/2.);
     let mut ants = WorkerAntCollection::new(600, colony);
     let mut pieces = FoodCollection::new(600);
-    let colony = ColonyImplimintation::new();
+    let colony = ColonyImplimintation::new(screen_width()/2., screen_height()/2.);
     let mut time:u128 = 0;
     loop {
 
@@ -37,8 +37,8 @@ async fn main() {
         ants.draw_ant();
         pieces.draw_piece();
         ColonyImplimintation::draw_colony(&colony);
-        draw_text(&format!("FPS: {}, ants: {}, SD: {}x{}, time: {}", get_fps(), ants.len(), screen_width(), screen_height(), time),
-        screen_width()-400., screen_height()-5.,
+        draw_text(&format!("FPS: {}, ants: {}, Food: {}, SD: {}x{}, time: {}", get_fps(), ants.len(), pieces.len(), screen_width(), screen_height(), time),
+        screen_width()-500., screen_height()-5.,
         18.,
         LIGHTGRAY);
 
