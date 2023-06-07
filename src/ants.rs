@@ -117,7 +117,7 @@ impl WorkerAnt {
     //     }
     // }
     pub fn dead(&self) -> bool { //needs to be dead(&mut self) for it to be able to edit the dead property
-        if self.life <= 0. || self.age >= 10000 {
+        if self.life <= 0. || self.age >= 1000 {
             return true;
         }
         false
@@ -161,14 +161,7 @@ impl WorkerAnt {
     // fn weight(&self) -> f32 {
     //     self.attack + self.defense + self.photosynthesis + self.motion
     // }
-    pub fn turn_dead(&mut self) -> Food {
-        let f:Food = Food {
-            pos: self.pos,
-            size: self.life,
-            exist: true,
-        };
-        f
-    }
+
 }
 
 /// Helper structure used for the rstar geometric data structure. This data structure is used for
@@ -202,9 +195,6 @@ pub struct Colony {
 }
 impl Colony {
     pub fn colony(posx:f32, posy:f32) -> Self {
-    
-        // let posx = modulus(posx, screen_width());
-        // let posy = modulus(posy, screen_height());
 
         let q = Colony {
             life:10.,
@@ -214,6 +204,28 @@ impl Colony {
         q
     }
 
+    pub fn update_food_values(mut self, AntCollection:WorkerAntCollection) {
+        if self.food_level <=0. {
+            //relese pheromones
+            self.life -= 0.01;
+
+        } else if self.food_level >0. || self.food_level < 15. {
+
+            if self.life < 10. {
+                while self.food_level > 0.06 && self.life < 10.{
+                    self.food_level -= 0.01;
+                    self.life += 0.01;
+                }
+                if self.life > 10. {
+                    self.life = 10.;
+                }
+            }
+            if self.food_level > 6.{
+                self.food_level -= 0.5;
+
+            }
+        }
+    }
 }
 
 pub struct Food {
