@@ -371,7 +371,7 @@ impl Object { // queen ant
                     kids.append(self.new_soldier);
                 } else if num * self.hunger < 30. {
                     kids.append(self.new_worker);
-                } else if num * health < 20. {
+                } else if num * self.hp < 20. {
                     kids.append(self.new_defender);
                 } else if num > 50. || num < 80. {
                     kids.append(self.new_scout);
