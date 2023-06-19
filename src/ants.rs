@@ -1,3 +1,5 @@
+use std::intrinsics::sqrtf32;
+
 use macroquad::{
     miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
     prelude::{rand, screen_height, screen_width, vec2, Vec2},
@@ -13,13 +15,7 @@ mod old_code {
     // n does nothing
     // const LETTERS : &[char] = &['a','d','p','m', 'n', 'n', 'n', 'i'];
 
-    // Modulus operator to get toroidal world topology
-    fn modulus<T>(a: T, b: T) -> T
-    where
-        T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy,
-    {
-        ((a % b) + b) % b
-    }
+    // modulo  operator to get toroidal world topology
 
     // A single ant
     #[derive(Clone, Debug)]
@@ -85,8 +81,8 @@ mod old_code {
             // }
 
             self.pos += self.speed;
-            self.pos.x = modulus(self.pos.x, screen_width());
-            self.pos.y = modulus(self.pos.y, screen_height());
+            self.pos.x = modulo (self.pos.x, screen_width());
+            self.pos.y = modulo (self.pos.y, screen_height());
             self.speed *= 0.9;
             // self.life += (self.photosynthesis - self.metabolism())*0.4;
             // if rand::gen_range(0., 1.) < 0.2*self.motion {
@@ -269,18 +265,15 @@ mod old_code {
     }
 }
 
-fn modulus<T>(a: T, b: T) -> T
-where
-    T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy,
-{
-    ((a % b) + b) % b
-}
+fn modulo <T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, { ((a % b) + b) % b } // calculate modulus operations
+/* possible ideas/additions to add later:
 
+ */
 struct Object {
     // What colony it belongs to
     alligence: i32,
-    // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'none'
-    ant_type: str,
+    // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'scent'
+    otype: str,
     // dead or alive
     dead: bool,
     // amount of health 0 -> dead
@@ -304,40 +297,42 @@ struct Object {
     // duration before becoming tired 0 -> tired
     stamina: f32,
     // Pheromone Governers
-    // Pheromone type, what the scent conveys: 'f'food 'd'danger 't'tohome 'h'home 'n'none 
-    pher_type: char,
-    // Pheromone strength, how 'smelly' it is and how long it will last
-    pher_str: f32,
+    // Pheromone strength of what the scent conveys: 'f'food 'd'danger 't'tohome 'h'home
+    pher_f: f32,
+    pher_d: f32,
+    pher_t: f32,
+    pher_h: f32,
     // Detection Range of Pheromone, the distance an ant can detect different pheromones
     pher_detect: f32,
-
 }
 /*Object {
-    alligence: i32
-    ant_type: str,
-    dead: bool,
-    hp: f32,
-    age: u128
-    vel: Vec2,
-    pos: Vec2,
-    hunger: f32,
-    strength: f32,
-    att_str: f32,
-    armor: f32,
-    mass: f32,
-    stamina: f32,
-    pher_type: str,
-    pher_str: f32,
-    pher_detect: f32, */
+alligence: i32
+type: str,
+dead: bool,
+hp: f32,
+age: u128
+vel: Vec2,
+pos: Vec2,
+hunger: f32,
+strength: f32,
+att_str: f32,
+armor: f32,
+mass: f32,
+stamina: f32,
+pher_f: f32,
+pher_d: f32,
+pher_t: f32,
+pher_h: f32,
+pher_detect: f32, */
 
 impl Object { // queen ant
-    fn new_queen(posx:f32, posy:f32) -> Object {
-        posx = modulus(posx, screen_width());
-        posy = modulus(posy, screen_height());
+    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Object { // creates new queen
+        posx = modulo (posx, screen_width());
+        posy = modulo (posy, screen_height());
 
-        let q: Object = Object {
+        let mut q: Object = Object {
             alligence: 0,
-            ant_type: "queen",
+            otype: "queen",
             dead: false,
             hp: 10.,
             age: 0,
@@ -349,44 +344,100 @@ impl Object { // queen ant
             armor: 0.,
             mass: 10.,
             stamina: 10.,
-            pher_type: 'h',
-            pher_str: 4.,
+            pher_f: 3.,
+            pher_d,
+            pher_t: 0,
+            pher_h: 10.,
             pher_detect: 1.,
         };
         q
     }
-    fn birth(&self) { 
-        let kids = Vec::new();
+    fn birth(&self) -> Vec<Object> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec
+        let kids: Vec<Object> = Vec::new();
 
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
+        let d = 2;
+        let num = rand::gen_range(1, 100);
 
-        if rand::gen_range(0., 100.) > 98. {
-            kids.append(self.new_queen);
+        if rand::gen_range(0., 1.)*100. < 0.4 {
+            kids.append(self.new_queen(self.pos.x, self.pos.y, self.pher_d));
         } else {
             for i in 1..20 {
-                let d = 0;
-                let num = rand::gen_range(1, 100);
                 if num * d > 80 {
-                    kids.append(self.new_soldier);
+                    kids.append(self.new_soldier(self.pos.x, self.pos.y, self.pher_d));
                 } else if num * self.hunger < 30. {
-                    kids.append(self.new_worker);
+                    kids.append(self.new_worker(self.pos.x, self.pos.y, self.pher_d));
                 } else if num * self.hp < 20. {
-                    kids.append(self.new_defender);
+                    kids.append(self.new_defender(self.pos.x, self.pos.y, self.pher_d));
                 } else if num > 50. || num < 80. {
-                    kids.append(self.new_scout);
+                    kids.append(self.new_scout(self.pos.x, self.pos.y, self.pher_d));
                 } else {
-                    kids.append(self.new_worker);
+                    kids.append(self.new_worker(self.pos.x, self.pos.y, self.pher_d));
                 }
             }
         }
-
+        kids
     }
+    fn feed(queen_vec: Vec<Object>, food_vec: Vec<Object>) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects 
+        let queen = queen_vec.clone();
+        let food = food_vec.clone();
+        let impure = Vec::new();
+        let open = purify_Vec(queen, "queen");
+        let queen = open[0];
+        impure.append(open[1]);
+        let open = purify_Vec(food, "food");
+        let food = open[0];
+        impure.append(open[1]);
+        for i in 0..queen.len(){
+            for j in 0..food.len() {
+                let distx = queen[i].pos.x - food[j].pos.x; 
+                let disty = queen[i].pos.y - food[j].pos.y;
+                let distr = f32::sqrt((distx*distx)+(disty*disty)) - queen[i].mass - food[j].mass;
+
+                if distr < 5. {
+                    queen[i].hunger += food[j].size;
+                    food[j].remove();
+                    while queen[i].hunger > 10.{
+                        let fat = queen[i].hunger - 10.;
+                        queen[i].hunger -= fat;
+                        queen[i].mass += fat;
+                    }
+                }
+            }
+        }
+        return (queen, food, impure);
+    }
+}
+impl Object { // worker ant
+
+}
+impl Object { // food
+
+}
+impl Object { // pheromones?
 
 } 
-impl Object {} // worker ant
-impl Object {} // food
-impl Object {} // pheromones?
-impl Object {} // scout
-impl Object {} // soldier
-impl Object {} // defender
+impl Object { // scout
+
+}
+impl Object { // soldier
+
+}
+impl Object { // defender
+
+}
+impl Object { // general fn, overlaping classes
+    fn purify_Vec(mut impure: Vec<Object>, label:str) -> (Vec<Object>, Vec<Object>) { // sorts out the ones that belong, and the ones that don't
+        let pure = Vec::new();
+        let impurity = Vec::new();
+        for i in 0..impure.len() {
+            if impure[i].otype == label {
+                pure.append(impure[i]);
+            } else {
+                impurity.append(impure[i]);
+            }
+        }
+        (pure, impurity)
+    }
+} 
