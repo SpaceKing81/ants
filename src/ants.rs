@@ -1,4 +1,4 @@
-use std::intrinsics::sqrtf32;
+use std::default;
 
 use macroquad::{
     miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
@@ -81,8 +81,8 @@ mod old_code {
             // }
 
             self.pos += self.speed;
-            self.pos.x = modulo (self.pos.x, screen_width());
-            self.pos.y = modulo (self.pos.y, screen_height());
+            self.pos.x = modulo(self.pos.x, screen_width());
+            self.pos.y = modulo(self.pos.y, screen_height());
             self.speed *= 0.9;
             // self.life += (self.photosynthesis - self.metabolism())*0.4;
             // if rand::gen_range(0., 1.) < 0.2*self.motion {
@@ -265,10 +265,15 @@ mod old_code {
     }
 }
 
-fn modulo <T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, { ((a % b) + b) % b } // calculate modulus operations
-/* possible ideas/additions to add later:
+fn modulo<T>(a: T, b: T) -> T
+where
+    T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy,
+{
+    ((a % b) + b) % b
+} // calculate modulus operations
+  /* possible ideas/additions to add later:
 
- */
+  */
 struct Object {
     // What colony it belongs to
     alligence: i32,
@@ -306,8 +311,8 @@ struct Object {
     pher_detect: f32,
 }
 /*Object {
-alligence: i32
-type: str,
+alligence: i32,
+otype: str,
 dead: bool,
 hp: f32,
 age: u128
@@ -325,10 +330,12 @@ pher_t: f32,
 pher_h: f32,
 pher_detect: f32, */
 
-impl Object { // queen ant
-    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Object { // creates new queen
-        posx = modulo (posx, screen_width());
-        posy = modulo (posy, screen_height());
+impl Object {
+    // queen ant
+    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Object {
+        // creates new queen
+        posx = modulo(posx, screen_width());
+        posy = modulo(posy, screen_height());
 
         let mut q: Object = Object {
             alligence: 0,
@@ -360,7 +367,7 @@ impl Object { // queen ant
         let d = 2;
         let num = rand::gen_range(1, 100);
 
-        if rand::gen_range(0., 1.)*100. < 0.4 {
+        if rand::gen_range(0., 1.) * 100. < 0.4 {
             kids.append(self.new_queen(self.pos.x, self.pos.y, self.pher_d));
         } else {
             for i in 1..20 {
@@ -379,26 +386,30 @@ impl Object { // queen ant
         }
         kids
     }
-    fn feed(queen_vec: Vec<Object>, food_vec: Vec<Object>) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects 
+    fn feed(
+        queen_vec: Vec<Object>,
+        food_vec: Vec<Object>,
+    ) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects
         let queen = queen_vec.clone();
         let food = food_vec.clone();
         let impure = Vec::new();
-        let open = purify_Vec(queen, "queen");
+        let open = Self::purify_Vec(queen, "queen");
         let queen = open[0];
         impure.append(open[1]);
-        let open = purify_Vec(food, "food");
+        let open = Self::purify_Vec(food, "food");
         let food = open[0];
         impure.append(open[1]);
-        for i in 0..queen.len(){
+        for i in 0..queen.len() {
             for j in 0..food.len() {
-                let distx = queen[i].pos.x - food[j].pos.x; 
+                let distx = queen[i].pos.x - food[j].pos.x;
                 let disty = queen[i].pos.y - food[j].pos.y;
-                let distr = f32::sqrt((distx*distx)+(disty*disty)) - queen[i].mass - food[j].mass;
+                let distr =
+                    f32::sqrt((distx * distx) + (disty * disty)) - queen[i].mass - food[j].mass;
 
                 if distr < 5. {
                     queen[i].hunger += food[j].size;
                     food[j].remove();
-                    while queen[i].hunger > 10.{
+                    while queen[i].hunger > 10. {
                         let fat = queen[i].hunger - 10.;
                         queen[i].hunger -= fat;
                         queen[i].mass += fat;
@@ -409,26 +420,133 @@ impl Object { // queen ant
         return (queen, food, impure);
     }
 }
-impl Object { // worker ant
-
+impl Object {
+    // worker ant
 }
-impl Object { // food
-
+impl Object {
+    // food
 }
-impl Object { // pheromones?
-
-} 
-impl Object { // scout
-
+impl Object {
+    // pheromones?
+    fn new_pher(source: &Object) -> Vec<Object>{
+        let mut new_h = Object{
+            alligence: 0,
+            otype: "scent",
+            dead: false,
+            hp: 0.,
+            age: 0.,
+            vel: vec2(0., 0.),
+            pher_detect: 0.,
+            hunger: 0.,
+            strength: 0.,
+            att_str: 0.,
+            armor: 0.,
+            mass: 0.,
+            stamina: 0.,
+            pher_f: 0.,
+            pher_d: 0.,
+            pher_t: 0.,
+            pos: vec2(rand::gen_range(0., source.pher_h) + source.pos.x, rand::gen_range(0., source.pher_h) + source.pos.y),
+            ..source
+        };
+        let mut new_f = Object{
+            alligence: 0,
+            otype: "scent",
+            dead: false,
+            hp: 0.,
+            age: 0.,
+            vel: vec2(0., 0.),
+            pher_detect: 0.,
+            hunger: 0.,
+            strength: 0.,
+            att_str: 0.,
+            armor: 0.,
+            mass: 0.,
+            stamina: 0.,
+            pher_h: 0.,
+            pher_d: 0.,
+            pher_t: 0.,
+            pos: vec2(rand::gen_range(0., source.pher_f) + source.pos.x, rand::gen_range(0., source.pher_f) + source.pos.y),
+            ..source
+        };
+        let mut new_d = Object{
+            alligence: 0,
+            otype: "scent",
+            dead: false,
+            hp: 0.,
+            age: 0.,
+            vel: vec2(0., 0.),
+            pher_detect: 0.,
+            hunger: 0.,
+            strength: 0.,
+            att_str: 0.,
+            armor: 0.,
+            mass: 0.,
+            stamina: 0.,
+            pher_f: 0.,
+            pher_h: 0.,
+            pher_t: 0.,
+            pos: vec2(rand::gen_range(0., source.pher_d) + source.pos.x, rand::gen_range(0., source.pher_d) + source.pos.y),
+            ..source
+        };
+        let mut new_t = Object{
+            alligence: 0,
+            otype: "scent",
+            dead: false,
+            hp: 0.,
+            age: 0.,
+            vel: vec2(0., 0.),
+            pher_detect: 0.,
+            hunger: 0.,
+            strength: 0.,
+            att_str: 0.,
+            armor: 0.,
+            mass: 0.,
+            stamina: 0.,
+            pher_f: 0.,
+            pher_d: 0.,
+            pher_h: 0.,
+            pos: vec2(rand::gen_range(0., source.pher_t) + source.pos.x, rand::gen_range(0., source.pher_t) + source.pos.y),
+            ..source
+        };
+        let output = vec![new_d, new_f, new_h, new_t];
+        output
+    }
+    fn disperse(phers: Vec<Object>) -> Vec<Object> {
+        let new_phers = Vec::new();
+        for i in 0..phers.len() {
+            phers[i].pher_d *= 0.3;
+            phers[i].pher_f *= 0.3;
+            phers[i].pher_t *= 0.3;
+            phers[i].pher_h *= 0.3;
+            new_phers.append(Self::new_pher(&phers[i]));
+            new_phers.append(Self::new_pher(&phers[i]));
+            new_phers.append(Self::new_pher(&phers[i]));
+        }
+        let finish = Vec::new();
+        for i in new_phers {
+            if i.pher_h < 0.2 && i.pher_t < 0.2 && i.pher_d < 0.2 && i.pher_f < 0.2 {
+                None;
+            } else {
+                finish.append(i);
+            }
+        }
+        finish
+    }
 }
-impl Object { // soldier
-
+impl Object {
+    // scout
 }
-impl Object { // defender
-
+impl Object {
+    // soldier
 }
-impl Object { // general fn, overlaping classes
-    fn purify_Vec(mut impure: Vec<Object>, label:str) -> (Vec<Object>, Vec<Object>) { // sorts out the ones that belong, and the ones that don't
+impl Object {
+    // defender
+}
+impl Object {
+    // general fn, overlaping classes
+    fn purify_Vec(mut impure: Vec<Object>, label: str) -> (Vec<Object>, Vec<Object>) {
+        // sorts out the ones that belong, and the ones that don't
         let pure = Vec::new();
         let impurity = Vec::new();
         for i in 0..impure.len() {
@@ -440,4 +558,28 @@ impl Object { // general fn, overlaping classes
         }
         (pure, impurity)
     }
-} 
+    fn sorter(chaos: Vec<Object>) -> (Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>) {
+        let queen:Vec<Object> = Vec::new();
+        let worker:Vec<Object> = Vec::new();
+        let soldier:Vec<Object> = Vec::new();
+        let defender:Vec<Object> = Vec::new();
+        let scout:Vec<Object> = Vec::new();
+        let food :Vec<Object> = Vec::new();
+        let scent:Vec<Object> = Vec::new();
+        for i in 0..chaos.len() {
+            match chaos[i].otype {
+                "queen" => queen.append(chaos[i]),
+                "worker" => worker.append(chaos[i]),
+                "soldier" => soldier.append(chaos[i]),
+                "defender" => defender.append(chaos[i]),
+                "scout" => scout.append(chaos[i]),
+                "food" => food.append(chaos[i]),
+                "scent" => scent.append(chaos[i]),
+                _ => println!("faliure found, sorter fn sourced"),
+            }
+        }
+        (queen,worker,soldier,defender,scout,food,scent)
+    }
+
+}
+
