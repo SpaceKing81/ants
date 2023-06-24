@@ -1,5 +1,5 @@
 use crate::ants::{/*The stuff thats imported is listed here */};
-use macroquad::prelude::*;
+use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
 // mod old_code {
 
@@ -226,7 +226,29 @@ use macroquad::prelude::*;
 // }
 // }
 
+struct Collection {
+  Everything: Vec<Object>,
+  Queen: Vec<Object>,
+  Defender: Vec<Object>,
+  Soldier: Vec<Object>,
+  Worker: Vec<Object>,
+  Scout: Vec<Object>,
+  Food: Vec<Object>,
+  AllPher: Vec<Object>,
+  FoodTO: Vec<Object>,
+  ToHome: Vec<Object>,
+  Home: Vec<Object>,
+  Danger: Vec<Object>
+}
 
+impl Collection {
+  fn begin(QuStart:Vec2, fooAmount: u128) {
+
+  }
+  fn advance() {
+    
+  }
+}
 
 
 

@@ -1,8 +1,7 @@
 use std::default;
-
 use macroquad::{
     miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
-    prelude::{rand, screen_height, screen_width, vec2, Vec2},
+    prelude::*,
 };
 
 mod old_code {
@@ -265,12 +264,7 @@ mod old_code {
     }
 }
 
-fn modulo<T>(a: T, b: T) -> T
-where
-    T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy,
-{
-    ((a % b) + b) % b
-} // calculate modulus operations
+fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, {((a % b) + b) % b} // calculate modulus operations
   /* possible ideas/additions to add later:
 
   */
@@ -386,10 +380,7 @@ impl Object {
         }
         kids
     }
-    fn feed(
-        queen_vec: Vec<Object>,
-        food_vec: Vec<Object>,
-    ) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects
+    fn feed(queen_vec: Vec<Object>,food_vec: Vec<Object>,) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects
         let queen = queen_vec.clone();
         let food = food_vec.clone();
         let impure = Vec::new();
@@ -579,6 +570,26 @@ impl Object {
             }
         }
         (queen,worker,soldier,defender,scout,food,scent)
+    }
+    fn color(&self) {
+        match self.otype {
+            "worker" => draw_circle(&self.pos.x, &self.pos.y, &self.mass, DARKBLUE),
+            "queen"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, GOLD),
+            "soldier"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, RED),
+            "defender"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, YELLOW),
+            "scout"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, SKYBLUE),
+            "food"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, ORANGE),
+            "scent"=> if pher_t > 0 {
+                draw_circle(&self.pos.x, &self.pos.y, &self.pher_t, GRAY);
+            } else if pher_h > 0 {
+                draw_circle(&self.pos.x, &self.pos.y, &self.pher_h, LIME);
+            } else if pher_f > 0 {
+                draw_circle(&self.pos.x, &self.pos.y, &self.pher_f, MAROON);
+            } else if pher_d > 0 {
+                draw_circle(&self.pos.x, &self.pos.y, &self.pher_d, VIOLET);
+            }
+            _=> println!("error color matcher")
+        }
     }
 
 }
