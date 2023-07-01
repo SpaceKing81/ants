@@ -302,7 +302,7 @@ struct Object {
     pher_t: f32,
     pher_h: f32,
     // Detection Range of Pheromone, the distance an ant can detect different pheromones
-    pher_detect: f32,
+    detect: f32,
 }
 /*Object {
 alligence: i32,
@@ -349,7 +349,7 @@ impl Object {
             pher_d,
             pher_t: 0,
             pher_h: 10.,
-            pher_detect: 1.,
+            detect: 1.,
         };
         q
     }
@@ -380,16 +380,8 @@ impl Object {
         }
         kids
     }
-    fn feed(queen_vec: Vec<Object>,food_vec: Vec<Object>,) -> (Vec<Object>, Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food, impure objects
-        let queen = queen_vec.clone();
-        let food = food_vec.clone();
-        let impure = Vec::new();
-        let open = Self::purify_Vec(queen, "queen");
-        let queen = open[0];
-        impure.append(open[1]);
-        let open = Self::purify_Vec(food, "food");
-        let food = open[0];
-        impure.append(open[1]);
+    fn feed(queen: Vec<Object>,food: Vec<Object>,) -> (Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food
+
         for i in 0..queen.len() {
             for j in 0..food.len() {
                 let distx = queen[i].pos.x - food[j].pos.x;
@@ -408,7 +400,7 @@ impl Object {
                 }
             }
         }
-        return (queen, food, impure);
+        return (queen, food);
     }
 }
 impl Object {
@@ -419,7 +411,7 @@ impl Object {
 }
 impl Object {
     // pheromones?
-    fn new_pher(source: &Object) -> Vec<Object>{
+    fn new_pher(source: &Object) -> Vec<Object>{ //generates a new set of pheremones based on an ant or food piece
         let mut new_h = Object{
             alligence: 0,
             otype: "scent",
@@ -427,7 +419,7 @@ impl Object {
             hp: 0.,
             age: 0.,
             vel: vec2(0., 0.),
-            pher_detect: 0.,
+            detect: 0.,
             hunger: 0.,
             strength: 0.,
             att_str: 0.,
@@ -447,7 +439,7 @@ impl Object {
             hp: 0.,
             age: 0.,
             vel: vec2(0., 0.),
-            pher_detect: 0.,
+            detect: 0.,
             hunger: 0.,
             strength: 0.,
             att_str: 0.,
@@ -467,7 +459,7 @@ impl Object {
             hp: 0.,
             age: 0.,
             vel: vec2(0., 0.),
-            pher_detect: 0.,
+            detect: 0.,
             hunger: 0.,
             strength: 0.,
             att_str: 0.,
@@ -487,7 +479,7 @@ impl Object {
             hp: 0.,
             age: 0.,
             vel: vec2(0., 0.),
-            pher_detect: 0.,
+            detect: 0.,
             hunger: 0.,
             strength: 0.,
             att_str: 0.,
@@ -503,7 +495,7 @@ impl Object {
         let output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    fn disperse(phers: Vec<Object>) -> Vec<Object> {
+    fn disperse(phers: Vec<Object>) -> Vec<Object> { //disperses the pheremones given. 
         let new_phers = Vec::new();
         for i in 0..phers.len() {
             phers[i].pher_d *= 0.3;
@@ -579,18 +571,24 @@ impl Object {
             "defender"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, YELLOW),
             "scout"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, SKYBLUE),
             "food"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, ORANGE),
-            "scent"=> if pher_t > 0 {
+            "scent"=> if self.pher_t > 0 {
                 draw_circle(&self.pos.x, &self.pos.y, &self.pher_t, GRAY);
-            } else if pher_h > 0 {
+            } else if self.pher_h > 0 {
                 draw_circle(&self.pos.x, &self.pos.y, &self.pher_h, LIME);
-            } else if pher_f > 0 {
+            } else if self.pher_f > 0 {
                 draw_circle(&self.pos.x, &self.pos.y, &self.pher_f, MAROON);
-            } else if pher_d > 0 {
+            } else if self.pher_d > 0 {
                 draw_circle(&self.pos.x, &self.pos.y, &self.pher_d, VIOLET);
             }
             _=> println!("error color matcher")
         }
     }
+    fn walk(&self) {
+        self.vel;
+        self.pos += self.vel
+    }
+
+
 
 }
 
