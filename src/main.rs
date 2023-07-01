@@ -20,15 +20,15 @@ fn window_conf() -> Conf {
     }
 }
 
+
 #[macroquad::main(window_conf())]
 async fn main() {
-
     // rand::srand(miniquad::date::now().to_bits());
 
 
     loop {
 
-        //Draw the simulation
+        // Draw the simulation
         // clear_background(Color::new(0.,0.,0.1,1.0));
         // ants.draw_ant();
         // pieces.draw_piece();
@@ -38,7 +38,7 @@ async fn main() {
         // 18.,
         // LIGHTGRAY);
 
-        //Advance the data
+        // Advance the data
         // time +=1;
 
         next_frame().await

@@ -1,4 +1,4 @@
-use std::default;
+use std::{default, f32::consts::PI};
 use macroquad::{
     miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
     prelude::*,
@@ -322,7 +322,7 @@ pher_f: f32,
 pher_d: f32,
 pher_t: f32,
 pher_h: f32,
-pher_detect: f32, */
+detect: f32, */
 
 impl Object {
     // queen ant
@@ -347,9 +347,9 @@ impl Object {
             stamina: 10.,
             pher_f: 3.,
             pher_d,
-            pher_t: 0,
+            pher_t: 0.,
             pher_h: 10.,
-            detect: 1.,
+            detect: 4.,
         };
         q
     }
@@ -364,13 +364,13 @@ impl Object {
         if rand::gen_range(0., 1.) * 100. < 0.4 {
             kids.append(Self::new_queen(self.pos.x, self.pos.y, self.pher_d));
         } else {
-            let num = (rand::gen_range(0.,5.)*&self.hunger + &self.pher_d)/&self.hp;
+            let num = Some((rand::gen_range(0.,5.)*&self.hunger + &self.pher_d)/&self.hp);
             for i in 1..20 {
                 match num {
-                   0.0..3. => kids.append(Self::new_worker()),
-                   3.001..5. => kids.append(Self::new_scout()),
-                   5.001..7. => kids.append(Self::new_soldier()),
-                   _=> kids.append(Self::new_defender()),
+                    Some(x) if x <= 3 => kids.append(Self::new_worker()),
+                    Some(x) if x > 3 && x <=5 => kids.append(Self::new_scout()),
+                    Some(x) if x > 5 && x <= 7 =>kids.append(Self::new_soldier()),
+                    _=> kids.append(Self::new_defender()),
                 }
             }
         }
@@ -400,10 +400,82 @@ impl Object {
     }
 }
 impl Object {
-    // worker ant
+    fn new_worker(&self) -> Object {
+        let mut w: Object = Object {
+            alligence: 0,
+            otype: "worker",
+            dead: false,
+            hp: 8.,
+            age: 0,
+            vel: vec2(0., 0.),
+            pos: &self.pos,
+            hunger: 0.,
+            strength: 20.,
+            att_str: 4.,
+            armor: 2.,
+            mass: 5.,
+            stamina: 30.,
+            pher_f: 0.,
+            pher_d: &self.pher_d,
+            pher_t: 10.,
+            pher_h: 0.,
+            detect: 7.,
+            
+        };
+        w
+    }
 }
 impl Object {
     // food
+    fn new_food(n:u128) -> Vec<Object> { //only to be used in the beginning of the simulation
+        let raw_food = Vec::new();
+        for i in 0..n {
+            let f = Object {
+                alligence: 0,
+                otype: "food",
+                dead: true,
+                hp: 0,
+                age: 0,
+                vel: vec2(0., 0.),
+                pos: vec2(rand::gen_range(0, screen_width()), rand::gen_range(0, screen_height())),
+                hunger: 0,
+                strength: 0,
+                att_str: 0,
+                armor: 0,
+                mass: 2,
+                stamina: 0,
+                pher_f: 0,
+                pher_d: 0,
+                pher_t: 0,
+                pher_h: 0,
+                detect: 0.,
+            };
+            raw_food.append(f);
+        }
+        raw_food
+    }
+    fn convert_to_food(deadOnes: Vec<Object>) -> Vec<Object> { //changes dead ants into food
+        for i in deadOnes {
+                i.alligence = 0;
+                i.otype = "food";
+                i.dead = true;
+                i.hp = 0.;
+                i.age = 0.;
+                i.vel = vec2(0, 0);
+                i.hunger = 0.;
+                i.strength = 0.;
+                i.att_str = 0.;
+                i.armor = 0.;
+                i.stamina = 0.;
+                i.pher_f = 0.;
+                i.pher_d = 0.;
+                i.pher_t = 0.;
+                i.pher_h = 0.;
+                i.pher_detect = 0.;
+                i.mass *= 0.9;
+            
+        }
+    }
 }
 impl Object {
     // pheromones?
@@ -515,28 +587,87 @@ impl Object {
 }
 impl Object {
     // scout
+    fn new_scout(&self) -> Object {
+        let mut s: Object = Object {
+            alligence: 0,
+            otype: "scout",
+            dead: false,
+            hp: 10.,
+            age: 0,
+            vel: vec2(0., 0.),
+            pos: &self.pos,
+            hunger: 0.,
+            strength: 10.,
+            att_str: 2.,
+            armor: 3.,
+            mass: 4.,
+            stamina: 50.,
+            pher_f: 0.,
+            pher_d: &self.pher_d,
+            pher_t: 10.,
+            pher_h: 0.,
+            detect: 20.,
+            
+        };
+        s
+    }
 }
 impl Object {
     // soldier
+    fn new_soldier(&self) -> Object {
+        let mut a: Object = Object {
+            alligence: 0,
+            otype: "soldier",
+            dead: false,
+            hp: 20.,
+            age: 0,
+            vel: vec2(0., 0.),
+            pos: &self.pos,
+            hunger: 0.,
+            strength: 10.,
+            att_str: 10.,
+            armor: 5.,
+            mass: 7.,
+            stamina: 50.,
+            detect: 4.,
+            pher_f: 0.,
+            pher_t: 10.,
+            pher_h: 0.,
+            pher_d: &self.pher_d,
+            
+        };
+        a
+    }
 }
 impl Object {
     // defender
+    fn new_worker(&self) -> Object {
+        let mut d: Object = Object {
+            alligence: 0,
+            otype: "defender",
+            dead: false,
+            hp: 50.,
+            age: 0,
+            vel: vec2(0., 0.),
+            pos: &self.pos,
+            hunger: 0.,
+            strength: 15.,
+            att_str: 2.,
+            armor: 10.,
+            mass: 15.,
+            stamina: 30.,
+            pher_f: 0.,
+            pher_d: &self.pher_d,
+            pher_t: 10.,
+            pher_h: 0.,
+            detect: 3.,
+            
+        };
+        d
+    }
 }
 impl Object {
     // general fn, overlaping classes
-    fn purify_Vec(mut impure: Vec<Object>, label: str) -> (Vec<Object>, Vec<Object>) {
-        // sorts out the ones that belong, and the ones that don't
-        let pure = Vec::new();
-        let impurity = Vec::new();
-        for i in 0..impure.len() {
-            if impure[i].otype == label {
-                pure.append(impure[i]);
-            } else {
-                impurity.append(impure[i]);
-            }
-        }
-        (pure, impurity)
-    }
     fn sorter(chaos: Vec<Object>) -> (Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>) {
         let queen:Vec<Object> = Vec::new();
         let worker:Vec<Object> = Vec::new();
@@ -579,7 +710,35 @@ impl Object {
             _=> println!("error color matcher")
         }
     }
+    fn orientation(&self) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
+        let x = &self.vel.x;
+        let y = &self.vel.y;
+        let degree;
+        if x =! 0 {
+            let degree = f32::to_degrees(f32::atan(y/x));
+            let x = x.abs() == x;
+            let y = y.abs() == y;
+            match y {
+                true => {match x {
+                    true => degree,
+                    false => degree = 180-degree,
+                }},
+                false => {match x {
+                    true => degree = 360-degree,
+                    false => degree += 180,
+                }}
+            }
+        } else {
+            let y = y.abs() == y;
+            if y { 
+                let degree = 90.;
+            } else{
+                let degree = 270.;
+            }
+        }
 
+        degree
+    }
 
 
 
