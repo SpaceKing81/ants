@@ -353,28 +353,24 @@ impl Object {
         };
         q
     }
-    fn birth(&self) -> Vec<Object> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec
+    fn birth(&self) -> Vec<Object> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. Unfinished!
+//need to update the new functions with the correct values, implemented before fn were created
         let kids: Vec<Object> = Vec::new();
-
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
         let d = 2;
         let num = rand::gen_range(1, 100);
 
         if rand::gen_range(0., 1.) * 100. < 0.4 {
-            kids.append(self.new_queen(self.pos.x, self.pos.y, self.pher_d));
+            kids.append(Self::new_queen(self.pos.x, self.pos.y, self.pher_d));
         } else {
+            let num = (rand::gen_range(0.,5.)*&self.hunger + &self.pher_d)/&self.hp;
             for i in 1..20 {
-                if num * d > 80 {
-                    kids.append(self.new_soldier(self.pos.x, self.pos.y, self.pher_d));
-                } else if num * self.hunger < 30. {
-                    kids.append(self.new_worker(self.pos.x, self.pos.y, self.pher_d));
-                } else if num * self.hp < 20. {
-                    kids.append(self.new_defender(self.pos.x, self.pos.y, self.pher_d));
-                } else if num > 50. || num < 80. {
-                    kids.append(self.new_scout(self.pos.x, self.pos.y, self.pher_d));
-                } else {
-                    kids.append(self.new_worker(self.pos.x, self.pos.y, self.pher_d));
+                match num {
+                   0.0..3. => kids.append(Self::new_worker()),
+                   3.001..5. => kids.append(Self::new_scout()),
+                   5.001..7. => kids.append(Self::new_soldier()),
+                   _=> kids.append(Self::new_defender()),
                 }
             }
         }
@@ -583,10 +579,7 @@ impl Object {
             _=> println!("error color matcher")
         }
     }
-    fn walk(&self) {
-        self.vel;
-        self.pos += self.vel
-    }
+
 
 
 
