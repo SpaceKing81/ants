@@ -1,4 +1,4 @@
-use crate::ants::{/*The stuff thats imported is listed here */};
+use crate::ants::{Things};
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
 // mod old_code {
@@ -227,27 +227,31 @@ use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 // }
 
 struct Collection {
-  Everything: Vec<Object>,
-  Queen: Vec<Object>,
-  Defender: Vec<Object>,
-  Soldier: Vec<Object>,
-  Worker: Vec<Object>,
-  Scout: Vec<Object>,
-  Food: Vec<Object>,
-  AllPher: Vec<Object>,
-  FoodTO: Vec<Object>,
-  ToHome: Vec<Object>,
-  Home: Vec<Object>,
-  Danger: Vec<Object>
+  Everything: Vec<Vec<Vec<Object>>>,
 }
 
 impl Collection {
-  fn begin(QuStart:Vec2, fooAmount: u128) {
+  fn new_collection(initial_food_pieces: u128) -> Collection {
+    let Queens = Vec::new();
+    let Soldiers = Vec::new();
+    let Scouts = Vec::new();
+    let Defenders = Vec::new();
+    let Workers = Vec::new();
+    let Pher_t = Vec::new();
+    let Pher_f = Vec::new();
+    let Pher_h = Vec::new();
+    let Pher_d = Vec::new();
+    let Raw_food = Vec::from(Things::new_food(initial_food_pieces));
+    let Delivered_food = Vec::new();
+    let All_ants = vec![Queens ,Soldiers, Scouts, Defenders, Workers];
+    let All_food = vec![Raw_food, Delivered_food];
+    let All_scents = vec![Pher_f, Pher_d, Pher_t, Pher_h];
+    let Everything: Vec<Vec<Vec<Object>>> = vec![All_ants, All_food, All_scents];
 
+    let Testing: Collection = Collection { Everything };
+    Everything
   }
-  fn advance() {
-    
-  }
+
 }
 
 
