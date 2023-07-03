@@ -172,7 +172,7 @@ mod old_code {
         pub idx: usize,
     }
 
-    impl RTreeObject for TreePoint {
+    impl RTreeThings for TreePoint {
         type Envelope = AABB<[f64; 2]>;
         fn envelope(&self) -> Self::Envelope {
             AABB::from_point([self.x, self.y])
@@ -180,7 +180,7 @@ mod old_code {
     }
 
     impl PointDistance for TreePoint {
-        fn distance_2(&self, point: &<<Self as rstar::RTreeObject>::Envelope as rstar::Envelope>::Point) -> <<<Self as rstar::RTreeObject>::Envelope as rstar::Envelope>::Point as rstar::Point>::Scalar
+        fn distance_2(&self, point: &<<Self as rstar::RTreeThings>::Envelope as rstar::Envelope>::Point) -> <<<Self as rstar::RTreeThings>::Envelope as rstar::Envelope>::Point as rstar::Point>::Scalar
 {
             (self.x - point[0]) * (self.x - point[0]) + (self.y - point[1]) * (self.y - point[1])
         }
@@ -268,7 +268,7 @@ fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add
   /* possible ideas/additions to add later:
 
   */
-struct Object {
+pub struct Things {
     // What colony it belongs to
     alligence: i32,
     // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'scent'
@@ -304,7 +304,7 @@ struct Object {
     // Detection Range of Pheromone, the distance an ant can detect different pheromones
     detect: f32,
 }
-/*Object {
+/*Things {
 alligence: i32,
 otype: str,
 dead: bool,
@@ -313,6 +313,7 @@ age: u128
 vel: Vec2,
 pos: Vec2,
 hunger: f32,
+detect: f32, 
 strength: f32,
 att_str: f32,
 armor: f32,
@@ -322,16 +323,16 @@ pher_f: f32,
 pher_d: f32,
 pher_t: f32,
 pher_h: f32,
-detect: f32, */
+*/
 
-impl Object {
+impl Things {
     // queen ant
-    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Object {
+    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Things {
         // creates new queen
         posx = modulo(posx, screen_width());
         posy = modulo(posy, screen_height());
 
-        let mut q: Object = Object {
+        let mut q: Things = Things {
             alligence: 0,
             otype: "queen",
             dead: false,
@@ -353,30 +354,30 @@ impl Object {
         };
         q
     }
-    fn birth(&self) -> Vec<Object> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. Unfinished!
+    pub fn birth(&self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. Unfinished!
 //need to update the new functions with the correct values, implemented before fn were created
-        let kids: Vec<Object> = Vec::new();
+        let kids: Vec<Things> = Vec::new();
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
         let d = 2;
         let num = rand::gen_range(1, 100);
 
         if rand::gen_range(0., 1.) * 100. < 0.4 {
-            kids.append(Self::new_queen(self.pos.x, self.pos.y, self.pher_d));
+            kids.append(Self::new_queen(&self.pos.x, &self.pos.y, &self.pher_d));
         } else {
             let num = Some((rand::gen_range(0.,5.)*&self.hunger + &self.pher_d)/&self.hp);
             for i in 1..20 {
                 match num {
-                    Some(x) if x <= 3 => kids.append(Self::new_worker()),
-                    Some(x) if x > 3 && x <=5 => kids.append(Self::new_scout()),
-                    Some(x) if x > 5 && x <= 7 =>kids.append(Self::new_soldier()),
-                    _=> kids.append(Self::new_defender()),
+                    Some(x) if x <= 3 => kids.append(Self::new_worker(&self)),
+                    Some(x) if x > 3 && x <=5 => kids.append(Self::new_scout(&self)),
+                    Some(x) if x > 5 && x <= 7 =>kids.append(Self::new_soldier(&self)),
+                    _=> kids.append(Self::new_defender(&self)),
                 }
             }
         }
         kids
     }
-    fn feed(queen: Vec<Object>,food: Vec<Object>,) -> (Vec<Object>, Vec<Object>) { //causes all queens to feed, containes updated queens, updated food
+    pub fn feed(queen: Vec<Things>,food: Vec<Things>,) -> (Vec<Things>, Vec<Things>) { //causes all queens to feed, containes updated queens, updated food
 
         for i in 0..queen.len() {
             for j in 0..food.len() {
@@ -399,9 +400,9 @@ impl Object {
         return (queen, food);
     }
 }
-impl Object {
-    fn new_worker(&self) -> Object {
-        let mut w: Object = Object {
+impl Things {
+    fn new_worker(&self) -> Things {
+        let mut w: Things = Things {
             alligence: 0,
             otype: "worker",
             dead: false,
@@ -425,12 +426,12 @@ impl Object {
         w
     }
 }
-impl Object {
+impl Things {
     // food
-    fn new_food(n:u128) -> Vec<Object> { //only to be used in the beginning of the simulation
+    pub fn new_food(n:u128) -> Vec<Things> { //only to be used in the beginning of the simulation
         let raw_food = Vec::new();
         for i in 0..n {
-            let f = Object {
+            let f = Things {
                 alligence: 0,
                 otype: "food",
                 dead: true,
@@ -450,11 +451,11 @@ impl Object {
                 pher_h: 0,
                 detect: 0.,
             };
-            raw_food.append(f);
+            raw_food.push(f);
         }
         raw_food
     }
-    fn convert_to_food(deadOnes: Vec<Object>) -> Vec<Object> { //changes dead ants into food
+    fn convert_to_food(deadOnes: Vec<Things>) -> Vec<Things> { //changes dead ants into food
         for i in deadOnes {
                 i.alligence = 0;
                 i.otype = "food";
@@ -473,14 +474,14 @@ impl Object {
                 i.pher_h = 0.;
                 i.pher_detect = 0.;
                 i.mass *= 0.9;
-            
         }
+        deadOnes
     }
 }
-impl Object {
+impl Things {
     // pheromones?
-    fn new_pher(source: &Object) -> Vec<Object>{ //generates a new set of pheremones based on an ant or food piece
-        let mut new_h = Object{
+    fn new_pher(source: &Things) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece
+        let mut new_h = Things{
             alligence: 0,
             otype: "scent",
             dead: false,
@@ -500,7 +501,7 @@ impl Object {
             pos: vec2(rand::gen_range(0., source.pher_h) + source.pos.x, rand::gen_range(0., source.pher_h) + source.pos.y),
             ..source
         };
-        let mut new_f = Object{
+        let mut new_f = Things{
             alligence: 0,
             otype: "scent",
             dead: false,
@@ -520,7 +521,7 @@ impl Object {
             pos: vec2(rand::gen_range(0., source.pher_f) + source.pos.x, rand::gen_range(0., source.pher_f) + source.pos.y),
             ..source
         };
-        let mut new_d = Object{
+        let mut new_d = Things{
             alligence: 0,
             otype: "scent",
             dead: false,
@@ -540,7 +541,7 @@ impl Object {
             pos: vec2(rand::gen_range(0., source.pher_d) + source.pos.x, rand::gen_range(0., source.pher_d) + source.pos.y),
             ..source
         };
-        let mut new_t = Object{
+        let mut new_t = Things{
             alligence: 0,
             otype: "scent",
             dead: false,
@@ -563,7 +564,7 @@ impl Object {
         let output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    fn disperse(phers: Vec<Object>) -> Vec<Object> { //disperses the pheremones given. 
+    fn disperse(phers: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
         let new_phers = Vec::new();
         for i in 0..phers.len() {
             phers[i].pher_d *= 0.3;
@@ -585,10 +586,10 @@ impl Object {
         finish
     }
 }
-impl Object {
+impl Things {
     // scout
-    fn new_scout(&self) -> Object {
-        let mut s: Object = Object {
+    fn new_scout(&self) -> Things {
+        let mut s: Things = Things {
             alligence: 0,
             otype: "scout",
             dead: false,
@@ -612,10 +613,10 @@ impl Object {
         s
     }
 }
-impl Object {
+impl Things {
     // soldier
-    fn new_soldier(&self) -> Object {
-        let mut a: Object = Object {
+    fn new_soldier(&self) -> Things {
+        let mut a: Things = Things {
             alligence: 0,
             otype: "soldier",
             dead: false,
@@ -639,10 +640,10 @@ impl Object {
         a
     }
 }
-impl Object {
+impl Things {
     // defender
-    fn new_worker(&self) -> Object {
-        let mut d: Object = Object {
+    fn new_worker(&self) -> Things {
+        let mut d: Things = Things {
             alligence: 0,
             otype: "defender",
             dead: false,
@@ -666,16 +667,16 @@ impl Object {
         d
     }
 }
-impl Object {
+impl Things {
     // general fn, overlaping classes
-    fn sorter(chaos: Vec<Object>) -> (Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>,Vec<Object>) {
-        let queen:Vec<Object> = Vec::new();
-        let worker:Vec<Object> = Vec::new();
-        let soldier:Vec<Object> = Vec::new();
-        let defender:Vec<Object> = Vec::new();
-        let scout:Vec<Object> = Vec::new();
-        let food :Vec<Object> = Vec::new();
-        let scent:Vec<Object> = Vec::new();
+    pub fn sorter(chaos: Vec<Things>) -> (Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>) {
+        let queen:Vec<Things> = Vec::new();
+        let worker:Vec<Things> = Vec::new();
+        let soldier:Vec<Things> = Vec::new();
+        let defender:Vec<Things> = Vec::new();
+        let scout:Vec<Things> = Vec::new();
+        let food :Vec<Things> = Vec::new();
+        let scent:Vec<Things> = Vec::new();
         for i in 0..chaos.len() {
             match chaos[i].otype {
                 "queen" => queen.append(chaos[i]),
@@ -690,7 +691,7 @@ impl Object {
         }
         (queen,worker,soldier,defender,scout,food,scent)
     }
-    fn color(&self) {
+    pub fn color(&self) {
         match self.otype {
             "worker" => draw_circle(&self.pos.x, &self.pos.y, &self.mass, DARKBLUE),
             "queen"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, GOLD),
@@ -710,36 +711,40 @@ impl Object {
             _=> println!("error color matcher")
         }
     }
-    fn orientation(&self) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
+    pub fn orientation(&self) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
         let x = &self.vel.x;
         let y = &self.vel.y;
         let degree;
-        if x =! 0 {
-            let degree = f32::to_degrees(f32::atan(y/x));
-            let x = x.abs() == x;
-            let y = y.abs() == y;
-            match y {
-                true => {match x {
-                    true => degree,
-                    false => degree = 180-degree,
-                }},
-                false => {match x {
-                    true => degree = 360-degree,
-                    false => degree += 180,
-                }}
-            }
-        } else {
+        if x == 0 {            
             let y = y.abs() == y;
             if y { 
-                let degree = 90.;
-            } else{
-                let degree = 270.;
+                return 90.;
+            } else {
+                return = 270.;
             }
         }
-
-        degree
+        let degree = f32::to_degrees(f32::atan(y/x));
+        let x = x.abs() == x;
+        let y = y.abs() == y;
+        match y {
+            true => {match x {
+                true => return degree,
+                false => return 180 - degree,
+            }},
+            false => {match x {
+                true => return 360 - degree,
+                false => return degree + 180,
+            }}
+        }
     }
-
+    pub fn in_range_check(&self, check_pos: Vec2) -> bool {
+        /*
+        first check if object is in circular detection range
+        second find the absolute equation of the circle with a radius of ant detection, with Vec2<0,0> being origin.
+        math to find equation describing all points that reside in the circle
+        true, false
+         */
+    }
 
 
 }
