@@ -1,4 +1,4 @@
-use crate::ants::{Things};
+use crate::thingers::{Things};
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
 // mod old_code {

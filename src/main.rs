@@ -1,9 +1,9 @@
 use macroquad::prelude::*;
 
-mod ants;
-mod ants_collection;
+mod thingers;
+mod holder;
 
-use ants_collection::{};
+use holder::{};
 
 fn window_conf() -> Conf {
 
