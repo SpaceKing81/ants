@@ -1,4 +1,4 @@
-use std::{default, f32::consts::PI};
+use std::{default};
 use macroquad::{
     miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
     prelude::*,
@@ -354,8 +354,7 @@ impl Things {
         };
         q
     }
-    pub fn birth(&self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. Unfinished!
-//need to update the new functions with the correct values, implemented before fn were created
+    pub fn birth(&self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. 
         let kids: Vec<Things> = Vec::new();
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
@@ -377,22 +376,23 @@ impl Things {
         }
         kids
     }
-    pub fn feed(queen: Vec<Things>,food: Vec<Things>,) -> (Vec<Things>, Vec<Things>) { //causes all queens to feed, containes updated queens, updated food
+    pub fn feed(queen: Vec<Things>, food: Vec<Vec<Things>>,) -> (Vec<Things>, Vec<Vec<Things>>) { //causes all queens to feed, containes updated queens, updated food
 
         for i in 0..queen.len() {
-            for j in 0..food.len() {
-                let distx = queen[i].pos.x - food[j].pos.x;
-                let disty = queen[i].pos.y - food[j].pos.y;
-                let distr =
-                    f32::sqrt((distx * distx) + (disty * disty)) - queen[i].mass - food[j].mass;
+            for x in 0..food.len() {    
+                for j in 0..food[x].len() {
+                    let distx = queen[i].pos.x - food[x][j].pos.x;
+                    let disty = queen[i].pos.y - food[x][j].pos.y;
+                    let distr = f32::sqrt((distx * distx) + (disty * disty)) - queen[i].mass - food[x][j].mass;
 
-                if distr < 5. {
-                    queen[i].hunger += food[j].size;
-                    food[j].remove();
-                    while queen[i].hunger > 10. {
-                        let fat = queen[i].hunger - 10.;
-                        queen[i].hunger -= fat;
-                        queen[i].mass += fat;
+                    if distr < 5. {
+                        queen[i].hunger += food[x][j].size;
+                        food[x][j].remove();
+                        while queen[i].hunger > 10. {
+                            let fat = queen[i].hunger - 10.;
+                            queen[i].hunger -= fat;
+                            queen[i].mass += fat;
+                        }
                     }
                 }
             }
@@ -401,6 +401,7 @@ impl Things {
     }
 }
 impl Things {
+    //worker
     fn new_worker(&self) -> Things {
         let mut w: Things = Things {
             alligence: 0,
@@ -480,7 +481,8 @@ impl Things {
 }
 impl Things {
     // pheromones?
-    fn new_pher(source: &Things) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece
+    fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece
+        let source = &self;
         let mut new_h = Things{
             alligence: 0,
             otype: "scent",
@@ -642,7 +644,7 @@ impl Things {
 }
 impl Things {
     // defender
-    fn new_worker(&self) -> Things {
+    fn new_defender(&self) -> Things {
         let mut d: Things = Things {
             alligence: 0,
             otype: "defender",
@@ -691,7 +693,7 @@ impl Things {
         }
         (queen,worker,soldier,defender,scout,food,scent)
     }
-    pub fn color(&self) {
+    pub fn colorShaper(&self) {
         match self.otype {
             "worker" => draw_circle(&self.pos.x, &self.pos.y, &self.mass, DARKBLUE),
             "queen"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, GOLD),
@@ -737,13 +739,55 @@ impl Things {
             }}
         }
     }
-    pub fn in_range_check(&self, check_pos: Vec2) -> bool {
+    pub fn degree_finder(x: f32, y: f32) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
+        let degree;
+        if x == 0 {            
+            let y = y.abs() == y;
+            if y { 
+                return 90.;
+            } else {
+                return = 270.;
+            }
+        }
+        let degree = f32::to_degrees(f32::atan(y/x));
+        let x = x.abs() == x;
+        let y = y.abs() == y;
+        match y {
+            true => {match x {
+                true => return degree,
+                false => return 180 - degree,
+            }},
+            false => {match x {
+                true => return 360 - degree,
+                false => return degree + 180,
+            }}
+        }
+    }
+    pub fn in_detect_range_check(&self, check_pos: Vec2) -> bool {
         /*
         first check if object is in circular detection range
         second find the absolute equation of the circle with a radius of ant detection, with Vec2<0,0> being origin.
         math to find equation describing all points that reside in the circle
         true, false
          */
+        let xdis = self.pos.x - check_pos.x;
+        let ydis = self.pos.y - check_pos.y;
+        if f32::sqrtf32(xdis*xdis + ydis*ydis) > self.detect { return false }
+
+        let degree = modulo(Self::degree_finder(xdis, ydis), 360.) - self.orientation();
+        if degree.abs() >= 45. { return false }
+        true
+    
+    }
+    pub fn move_to_food(&self) {
+        let topSpeed = self.strength *2. - self.mass - self.armor;
+        let speed =  self.strength - self.mass - self.armor;
+        let stamina = self.stamina;
+        
+        
+        
+
+        self.pos += self.vel;
     }
 
 
