@@ -227,7 +227,7 @@ use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 // }
 
 struct Collection {
-  Everything: Vec<Vec<Vec<Object>>>,
+  Everything: Vec<Vec<Vec<Things>>>,
 }
 
 impl Collection {
@@ -246,9 +246,9 @@ impl Collection {
     let All_ants = vec![Queens ,Soldiers, Scouts, Defenders, Workers];
     let All_food = vec![Raw_food, Delivered_food];
     let All_scents = vec![Pher_f, Pher_d, Pher_t, Pher_h];
-    let Everything: Vec<Vec<Vec<Object>>> = vec![All_ants, All_food, All_scents];
+    let Everything: Vec<Vec<Vec<Things>>> = vec![All_ants, All_food, All_scents];
 
-    let Testing: Collection = Collection { Everything };
+    let Testing = Self { Everything };
     Everything
   }
 
