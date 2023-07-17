@@ -1,268 +1,9 @@
 use std::{default};
 use macroquad::{
-    miniquad::gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC,
+    miniquad::{gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC, native::apple::frameworks::Object},
     prelude::*,
 };
 
-mod old_code {
-    // / Elements of the biots' genomes:
-    // / a for attack
-    // / d for defence
-    // / p for photosynthesis
-    // / m for motion
-    // / i for intelligence
-    // n does nothing
-    // const LETTERS : &[char] = &['a','d','p','m', 'n', 'n', 'n', 'i'];
-
-    // modulo  operator to get toroidal world topology
-
-    // A single ant
-    #[derive(Clone, Debug)]
-    pub struct WorkerAnt {
-        // Status
-        life: f32,
-        pub pos: Vec2,
-        speed: Vec2,
-        age: u32,
-        pub dead: bool, // Genome
-                        // genome: [char; 13],
-                        // pub attack: f32,
-                        // pub defense: f32,
-                        // pub photosynthesis: f32,
-                        // pub motion: f32,
-                        // pub intelligence: f32,
-    }
-
-    impl WorkerAnt {
-        /// Create a worker ant
-        pub fn worker_ant(pos: Vec2) -> Self {
-            // let mut genome = ['u';13];
-            // for letter in genome.iter_mut() {
-            //     *letter = LETTERS[rand::gen_range(0, LETTERS.len() as u32) as usize];
-            // }
-            let mut s = Self {
-                life: 0.,
-                pos,
-                speed: vec2(2., 2.),
-                age: 0,
-                dead: false,
-                // genome,
-                // attack: 0.,
-                // defense: 0.,
-                // photosynthesis: 0.,
-                // motion: 0.,
-                // intelligence: 0.,
-            };
-            // s.set_from_genome();
-            s.life = s.base_life();
-            s
-        }
-        // Compute the evolution of the biot for one simulation step
-        pub fn step(
-            &mut self,
-            rtree: &RTree<TreePoint>,
-            feed_dir: Option<Vec2>,
-        ) -> Option<WorkerAnt> {
-            let mut offspring = None;
-
-            // put in colony purview, reproduction if life is big enough
-
-            // if close_by.map_or(true, |(_,d2)|d2>200.) {
-            //     let mut off = self.clone();
-            //     off.age = 0;
-            //     // while rand::gen_range(0., 1.) < 0.2 {
-            //     //     off.mutate();
-            //     // }
-            //     off.life = off.base_life();
-            //     off.random_move(1.5);
-            //     offspring = Some(off);
-            //     self.life = (adult_factor-1.)* self.base_life();
-            // }
-
-            self.pos += self.speed;
-            self.pos.x = modulo(self.pos.x, screen_width());
-            self.pos.y = modulo(self.pos.y, screen_height());
-            self.speed *= 0.9;
-            // self.life += (self.photosynthesis - self.metabolism())*0.4;
-            // if rand::gen_range(0., 1.) < 0.2*self.motion {
-            let speed = 5.;
-            // if self.intelligence > 0. {
-            // if let Some(feed_dir) = feed_dir {
-            // self.accelerate(feed_dir, speed);
-            // } else {
-            // self.random_move(speed)
-            // }
-            // } else {
-            self.random_move(speed);
-            // }
-            // }
-
-            self.age += 1;
-            offspring
-        }
-        // Fight between two ants
-        // pub fn interact(worker_ants: &mut Vec<Self>, i:usize, j:usize) {
-        //     let dist = (worker_ants[i].pos - worker_ants[j].pos).length();
-        //     if dist < 10.* (worker_ants[i].weight() + worker_ants[j].weight()) {
-        //         if worker_ants[i].stronger(&worker_ants[j]) {
-        //             worker_ants[i].life += worker_ants[j].life * 0.8;
-        //             worker_ants[j].life = 0.;
-        //         }
-        //         else if worker_ants[j].stronger(&worker_ants[i]) {
-        //             worker_ants[j].life += worker_ants[i].life * 0.8;
-        //             worker_ants[i].life = 0.;
-        //         }
-        //     }
-        // }
-        pub fn dead(&self) -> bool {
-            //needs to be dead(&mut self) for it to be able to edit the dead property
-            if self.life <= 0. || self.age >= 1000 {
-                return true;
-            }
-            false
-        }
-        // Are we stronger than this other biot?
-        // pub fn stronger(&self, other: &Self) -> bool {
-        //     self.attack > other.attack + other.defense * 0.9
-        // }
-        // Compute chacteristics from biot genome
-        // fn set_from_genome(&mut self) {
-        //     self.attack= self.genome.iter().filter(|&&c|c=='a').count() as f32 * 0.1;
-        //     self.defense= self.genome.iter().filter(|&&c|c=='d').count() as f32 * 0.1;
-        //     self.photosynthesis= self.genome.iter().filter(|&&c|c=='p').count() as f32 * 0.1;
-        //     self.motion= self.genome.iter().filter(|&&c|c=='m').count() as f32 * 0.1;
-        //     self.intelligence= self.genome.iter().filter(|&&c|c=='i').count() as f32 * 10.;
-        // }
-        // Move in a random direction
-        fn random_move(&mut self, speed: f32) {
-            self.accelerate(
-                vec2(rand::gen_range(0., 1.) - 0.5, rand::gen_range(0., 1.) - 0.5).normalize(),
-                speed,
-            );
-        }
-        /// Apply acceleration in a certain direction
-        fn accelerate(&mut self, dir: Vec2, speed: f32) {
-            self.speed += dir * speed;
-        }
-        // Randomly mutate a single base
-        // fn mutate(&mut self) {
-        //     self.genome[rand::gen_range(0, self.genome.len() as u32) as usize] = LETTERS[rand::gen_range(0, LETTERS.len() as u32) as usize];
-        //     self.set_from_genome();
-        // }
-        // Original life points of a biot. Also used to determine when the biot will spawn
-        fn base_life(&self) -> f32 {
-            10.
-        }
-        // Metabolic cost of various traits. These parameters are aboslutely critical to the
-        // simulation
-        // fn metabolism(&self) -> f32 {
-        //     0.2*(4.5*self.attack + 2.3*self.defense + 2.5*self.motion + 0.1*self.intelligence)
-        // }
-
-        // fn weight(&self) -> f32 {
-        //     self.attack + self.defense + self.photosynthesis + self.motion
-        // }
-    }
-
-    /// Helper structure used for the rstar geometric data structure. This data structure is used for
-    /// computing interaction between biots fluidly even with thousands of them
-    pub struct TreePoint {
-        pub x: f64,
-        pub y: f64,
-        pub idx: usize,
-    }
-
-    impl RTreeThings for TreePoint {
-        type Envelope = AABB<[f64; 2]>;
-        fn envelope(&self) -> Self::Envelope {
-            AABB::from_point([self.x, self.y])
-        }
-    }
-
-    impl PointDistance for TreePoint {
-        fn distance_2(&self, point: &<<Self as rstar::RTreeThings>::Envelope as rstar::Envelope>::Point) -> <<<Self as rstar::RTreeThings>::Envelope as rstar::Envelope>::Point as rstar::Point>::Scalar
-{
-            (self.x - point[0]) * (self.x - point[0]) + (self.y - point[1]) * (self.y - point[1])
-        }
-    }
-
-    pub struct Colony {
-        life: f32,
-        food_level: f32,
-        pub pos: Vec2,
-    }
-    impl Colony {
-        pub fn colony(posx: f32, posy: f32) -> Self {
-            let q = Colony {
-                life: 10.,
-                food_level: 10.,
-                pos: vec2(posx, posy),
-            };
-            q
-        }
-
-        pub fn update_food_values(mut self, AntCollection: WorkerAntCollection) {
-            if self.food_level <= 0. {
-                //relese pheromones
-                self.life -= 0.01;
-            } else if self.food_level > 0. || self.food_level < 15. {
-                if self.life < 10. {
-                    while self.food_level > 0.06 && self.life < 10. {
-                        self.food_level -= 0.01;
-                        self.life += 0.01;
-                    }
-                    if self.life > 10. {
-                        self.life = 10.;
-                    }
-                }
-                if self.food_level > 6. {
-                    self.food_level -= 0.5;
-                }
-            }
-        }
-    }
-
-    pub struct Food {
-        pub pos: Vec2,
-        pub size: f32,
-        pub exist: bool,
-    }
-
-    impl Food {
-        pub fn food(pos: Vec2) -> Self {
-            let f = Self {
-                pos,
-                size: 2.,
-                exist: true,
-            };
-            f
-        }
-        pub fn aggergate(food: &mut Vec<Self>, i: usize, j: usize) {
-            let distx = food[i].pos.x - food[j].pos.x;
-            let disty = food[i].pos.y - food[j].pos.y;
-            let distr = (((disty * disty) + (distx + distx)).sqrt()) - food[i].size - food[j].size;
-
-            if (distr) < 10. {
-                if food[i].size > food[j].size {
-                    food[i].pos.x += distx * food[j].size / food[i].size;
-                    food[i].pos.y += disty * food[j].size / food[i].size;
-                    food[i].size += food[j].size;
-                    food[j].exist = false;
-                } else if food[j].size > food[i].size {
-                    food[j].pos.x += distx * food[i].size / food[j].size;
-                    food[j].pos.y += disty * food[i].size / food[j].size;
-                    food[j].size += food[i].size;
-                    food[i].exist = false;
-                } else {
-                    food[j].pos.x += distx * 0.5;
-                    food[j].pos.y += disty * 0.5;
-                    food[j].size += food[i].size;
-                    food[i].exist = false;
-                }
-            }
-        }
-    }
-}
 
 fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, {((a % b) + b) % b} // calculate modulus operations
   /* possible ideas/additions to add later:
@@ -272,7 +13,7 @@ pub struct Things {
     // What colony it belongs to
     alligence: i32,
     // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'scent'
-    otype: str,
+    otype: String,
     // dead or alive
     dead: bool,
     // amount of health 0 -> dead
@@ -329,12 +70,12 @@ impl Things {
     // queen ant
     fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Things {
         // creates new queen
-        posx = modulo(posx, screen_width());
-        posy = modulo(posy, screen_height());
+        let posx = modulo(posx, screen_width());
+        let posy = modulo(posy, screen_height());
 
         let mut q: Things = Things {
             alligence: 0,
-            otype: "queen",
+            otype: "queen".to_string(),
             dead: false,
             hp: 10.,
             age: 0,
@@ -355,22 +96,22 @@ impl Things {
         q
     }
     pub fn birth(&self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. 
-        let kids: Vec<Things> = Vec::new();
+        let mut kids: Vec<Things> = Vec::new();
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
         let d = 2;
         let num = rand::gen_range(1, 100);
 
         if rand::gen_range(0., 1.) * 100. < 0.4 {
-            kids.append(Self::new_queen(&self.pos.x, &self.pos.y, &self.pher_d));
+            kids.push(Self::new_queen(self.pos.x, self.pos.y, self.pher_d));
         } else {
             let num = Some((rand::gen_range(0.,5.)*&self.hunger + &self.pher_d)/&self.hp);
             for i in 1..20 {
                 match num {
-                    Some(x) if x <= 3 => kids.append(Self::new_worker(&self)),
-                    Some(x) if x > 3 && x <=5 => kids.append(Self::new_scout(&self)),
-                    Some(x) if x > 5 && x <= 7 =>kids.append(Self::new_soldier(&self)),
-                    _=> kids.append(Self::new_defender(&self)),
+                    Some(x) if x <= 3. => kids.push(Self::new_worker(&self)),
+                    Some(x) if x > 3. && x <=5. => kids.push(Self::new_scout(&self)),
+                    Some(x) if x > 5. && x <= 7. =>kids.push(Self::new_soldier(&self)),
+                    _=> kids.push(Self::new_defender(&self)),
                 }
             }
         }
@@ -386,7 +127,7 @@ impl Things {
                     let distr = f32::sqrt((distx * distx) + (disty * disty)) - queen[i].mass - food[x][j].mass;
 
                     if distr < 5. {
-                        queen[i].hunger += food[x][j].size;
+                        queen[i].hunger += food[x][j].mass;
                         food[x][j].remove();
                         while queen[i].hunger > 10. {
                             let fat = queen[i].hunger - 10.;
@@ -405,12 +146,12 @@ impl Things {
     fn new_worker(&self) -> Things {
         let mut w: Things = Things {
             alligence: 0,
-            otype: "worker",
+            otype: "worker".to_string(),
             dead: false,
             hp: 8.,
             age: 0,
             vel: vec2(0., 0.),
-            pos: &self.pos,
+            pos: self.pos,
             hunger: 0.,
             strength: 20.,
             att_str: 4.,
@@ -418,7 +159,7 @@ impl Things {
             mass: 5.,
             stamina: 30.,
             pher_f: 0.,
-            pher_d: &self.pher_d,
+            pher_d: self.pher_d,
             pher_t: 10.,
             pher_h: 0.,
             detect: 7.,
@@ -429,41 +170,41 @@ impl Things {
 }
 impl Things {
     // food
-    pub fn new_food(n:u128) -> Vec<Things> { //only to be used in the beginning of the simulation
-        let raw_food = Vec::new();
-        for i in 0..n {
+    pub fn new_food(amount:u128) -> Vec<Things> { //only to be used in the beginning of the simulation
+        let mut raw_food = Vec::new();
+        for i in 0..amount {
             let f = Things {
                 alligence: 0,
-                otype: "food",
+                otype: "food".to_string(),
                 dead: true,
-                hp: 0,
+                hp: 0.,
                 age: 0,
                 vel: vec2(0., 0.),
-                pos: vec2(rand::gen_range(0, screen_width()), rand::gen_range(0, screen_height())),
-                hunger: 0,
-                strength: 0,
-                att_str: 0,
-                armor: 0,
-                mass: 2,
-                stamina: 0,
-                pher_f: 0,
-                pher_d: 0,
-                pher_t: 0,
-                pher_h: 0,
+                pos: vec2(rand::gen_range(0., screen_width()), rand::gen_range(0., screen_height())),
+                hunger: 0.,
+                strength: 0.,
+                att_str: 0.,
+                armor: 0.,
+                mass: 2.,
+                stamina: 0.,
+                pher_f: 0.,
+                pher_d: 0.,
+                pher_t: 0.,
+                pher_h: 0.,
                 detect: 0.,
             };
             raw_food.push(f);
         }
         raw_food
     }
-    fn convert_to_food(deadOnes: Vec<Things>) -> Vec<Things> { //changes dead ants into food
-        for i in deadOnes {
+    fn convert_to_food(mut deadOnes: Vec<Things>) -> Vec<Things> { //changes dead ants into food
+        for mut i in deadOnes {
                 i.alligence = 0;
-                i.otype = "food";
+                i.otype = "food".to_string();
                 i.dead = true;
                 i.hp = 0.;
-                i.age = 0.;
-                i.vel = vec2(0, 0);
+                i.age = 0;
+                i.vel = vec2(0., 0.);
                 i.hunger = 0.;
                 i.strength = 0.;
                 i.att_str = 0.;
@@ -473,22 +214,59 @@ impl Things {
                 i.pher_d = 0.;
                 i.pher_t = 0.;
                 i.pher_h = 0.;
-                i.pher_detect = 0.;
+                i.detect = 0.;
                 i.mass *= 0.9;
+            }
+            deadOnes
         }
-        deadOnes
+    fn siphon_food(&self, mass:f32) -> Things { //only to be used in the beginning of the simulation
+            let f = Things {
+                alligence: 0,
+                otype: "food".to_string(),
+                dead: true,
+                hp: 0.,
+                age: 0,
+                vel: vec2(self.vel.x, self.vel.y),
+                pos: vec2(self.pos.x, self.pos.y),
+                hunger: 0.,
+                strength: 0.,
+                att_str: 0.,
+                armor: 0.,
+                mass,
+                stamina: 0.,
+                pher_f: 0.,
+                pher_d: 0.,
+                pher_t: 0.,
+                pher_h: 0.,
+                detect: 0.,
+            };
+            f
+    }
+    fn pick_food(mut self, mut foodPiece:Things) -> (Things, Things) { //ants picks up specific food piece, makes a group of ant-food that can be split up when food is delivered
+        let takenPieceSize = &self.strength - &self.mass;
+        let smallEnough = foodPiece.mass < takenPieceSize;
+        if smallEnough {
+            foodPiece.pos = self.pos;
+            foodPiece.vel = self.vel;
+            self.mass += foodPiece.mass;
+            return (self, foodPiece);
+        }
+        foodPiece.mass = foodPiece.mass - takenPieceSize;
+        let takenPiece = self.siphon_food(takenPieceSize);
+        self.mass += takenPiece.mass;
+        (self, takenPiece)
+
     }
 }
 impl Things {
     // pheromones?
-    fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece
-        let source = &self;
+    fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece;
         let mut new_h = Things{
             alligence: 0,
-            otype: "scent",
+            otype: "scent".to_string(),
             dead: false,
             hp: 0.,
-            age: 0.,
+            age: 0,
             vel: vec2(0., 0.),
             detect: 0.,
             hunger: 0.,
@@ -500,15 +278,15 @@ impl Things {
             pher_f: 0.,
             pher_d: 0.,
             pher_t: 0.,
-            pos: vec2(rand::gen_range(0., source.pher_h) + source.pos.x, rand::gen_range(0., source.pher_h) + source.pos.y),
-            ..source
+            pos: vec2(rand::gen_range(0., self.pher_h) + self.pos.x, rand::gen_range(0., self.pher_h) + self.pos.y),
+            pher_h: self.pher_h,
         };
         let mut new_f = Things{
             alligence: 0,
-            otype: "scent",
+            otype: "scent".to_string(),
             dead: false,
             hp: 0.,
-            age: 0.,
+            age: 0,
             vel: vec2(0., 0.),
             detect: 0.,
             hunger: 0.,
@@ -520,15 +298,15 @@ impl Things {
             pher_h: 0.,
             pher_d: 0.,
             pher_t: 0.,
-            pos: vec2(rand::gen_range(0., source.pher_f) + source.pos.x, rand::gen_range(0., source.pher_f) + source.pos.y),
-            ..source
+            pos: vec2(rand::gen_range(0., self.pher_f) + self.pos.x, rand::gen_range(0., self.pher_f) + self.pos.y),
+            pher_f: self.pher_f,
         };
         let mut new_d = Things{
             alligence: 0,
-            otype: "scent",
+            otype: "scent".to_string(),
             dead: false,
             hp: 0.,
-            age: 0.,
+            age: 0,
             vel: vec2(0., 0.),
             detect: 0.,
             hunger: 0.,
@@ -540,15 +318,15 @@ impl Things {
             pher_f: 0.,
             pher_h: 0.,
             pher_t: 0.,
-            pos: vec2(rand::gen_range(0., source.pher_d) + source.pos.x, rand::gen_range(0., source.pher_d) + source.pos.y),
-            ..source
+            pos: vec2(rand::gen_range(0., self.pher_d) + self.pos.x, rand::gen_range(0., self.pher_d) + self.pos.y),
+            pher_d: self.pher_d,
         };
         let mut new_t = Things{
             alligence: 0,
-            otype: "scent",
+            otype: "scent".to_string(),
             dead: false,
             hp: 0.,
-            age: 0.,
+            age: 0,
             vel: vec2(0., 0.),
             detect: 0.,
             hunger: 0.,
@@ -560,22 +338,22 @@ impl Things {
             pher_f: 0.,
             pher_d: 0.,
             pher_h: 0.,
-            pos: vec2(rand::gen_range(0., source.pher_t) + source.pos.x, rand::gen_range(0., source.pher_t) + source.pos.y),
-            ..source
+            pos: vec2(rand::gen_range(0., self.pher_t) + self.pos.x, rand::gen_range(0., self.pher_t) + self.pos.y),
+            pher_t: self.pher_t,
         };
-        let output = vec![new_d, new_f, new_h, new_t];
+        let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    fn disperse(phers: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
-        let new_phers = Vec::new();
+    fn disperse(mut phers: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
+        let mut new_phers = Vec::new();
         for i in 0..phers.len() {
             phers[i].pher_d *= 0.3;
             phers[i].pher_f *= 0.3;
             phers[i].pher_t *= 0.3;
             phers[i].pher_h *= 0.3;
-            new_phers.append(Self::new_pher(&phers[i]));
-            new_phers.append(Self::new_pher(&phers[i]));
-            new_phers.append(Self::new_pher(&phers[i]));
+            new_phers.append(Self::new_pher(phers[i]));
+            new_phers.append(Self::new_pher(phers[i]));
+            new_phers.append(Self::new_pher(phers[i]));
         }
         let finish = Vec::new();
         for i in new_phers {
@@ -593,12 +371,12 @@ impl Things {
     fn new_scout(&self) -> Things {
         let mut s: Things = Things {
             alligence: 0,
-            otype: "scout",
+            otype: "scout".to_string(),
             dead: false,
             hp: 10.,
             age: 0,
             vel: vec2(0., 0.),
-            pos: &self.pos,
+            pos: self.pos,
             hunger: 0.,
             strength: 10.,
             att_str: 2.,
@@ -606,7 +384,7 @@ impl Things {
             mass: 4.,
             stamina: 50.,
             pher_f: 0.,
-            pher_d: &self.pher_d,
+            pher_d: self.pher_d,
             pher_t: 10.,
             pher_h: 0.,
             detect: 20.,
@@ -620,12 +398,12 @@ impl Things {
     fn new_soldier(&self) -> Things {
         let mut a: Things = Things {
             alligence: 0,
-            otype: "soldier",
+            otype: "soldier".to_string(),
             dead: false,
             hp: 20.,
             age: 0,
             vel: vec2(0., 0.),
-            pos: &self.pos,
+            pos: self.pos,
             hunger: 0.,
             strength: 10.,
             att_str: 10.,
@@ -636,7 +414,7 @@ impl Things {
             pher_f: 0.,
             pher_t: 10.,
             pher_h: 0.,
-            pher_d: &self.pher_d,
+            pher_d: self.pher_d,
             
         };
         a
@@ -647,12 +425,12 @@ impl Things {
     fn new_defender(&self) -> Things {
         let mut d: Things = Things {
             alligence: 0,
-            otype: "defender",
+            otype: "defender".to_string(),
             dead: false,
             hp: 50.,
             age: 0,
             vel: vec2(0., 0.),
-            pos: &self.pos,
+            pos: self.pos,
             hunger: 0.,
             strength: 15.,
             att_str: 2.,
@@ -660,7 +438,7 @@ impl Things {
             mass: 15.,
             stamina: 30.,
             pher_f: 0.,
-            pher_d: &self.pher_d,
+            pher_d: self.pher_d,
             pher_t: 10.,
             pher_h: 0.,
             detect: 3.,
@@ -679,15 +457,15 @@ impl Things {
         let scout:Vec<Things> = Vec::new();
         let food :Vec<Things> = Vec::new();
         let scent:Vec<Things> = Vec::new();
-        for i in 0..chaos.len() {
-            match chaos[i].otype {
-                "queen" => queen.append(chaos[i]),
-                "worker" => worker.append(chaos[i]),
-                "soldier" => soldier.append(chaos[i]),
-                "defender" => defender.append(chaos[i]),
-                "scout" => scout.append(chaos[i]),
-                "food" => food.append(chaos[i]),
-                "scent" => scent.append(chaos[i]),
+        for mut i in chaos{
+            match i.otype {
+                "queen" => queen.push(i),
+                "worker" => worker.push(i),
+                "soldier" => soldier.push(i),
+                "defender" => defender.push(i),
+                "scout" => scout.push(i),
+                "food" => food.append(i),
+                "scent" => scent.push(i),
                 _ => println!("faliure found, sorter fn sourced"),
             }
         }
@@ -695,34 +473,34 @@ impl Things {
     }
     pub fn colorShaper(&self) {
         match self.otype {
-            "worker" => draw_circle(&self.pos.x, &self.pos.y, &self.mass, DARKBLUE),
-            "queen"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, GOLD),
-            "soldier"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, RED),
-            "defender"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, YELLOW),
-            "scout"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, SKYBLUE),
-            "food"=> draw_circle(&self.pos.x, &self.pos.y, &self.mass, ORANGE),
-            "scent"=> if self.pher_t > 0 {
-                draw_circle(&self.pos.x, &self.pos.y, &self.pher_t, GRAY);
-            } else if self.pher_h > 0 {
-                draw_circle(&self.pos.x, &self.pos.y, &self.pher_h, LIME);
-            } else if self.pher_f > 0 {
-                draw_circle(&self.pos.x, &self.pos.y, &self.pher_f, MAROON);
-            } else if self.pher_d > 0 {
-                draw_circle(&self.pos.x, &self.pos.y, &self.pher_d, VIOLET);
+            "worker"=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
+            "queen"=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
+            "soldier"=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
+            "defender"=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
+            "scout"=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
+            "food"=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
+            "scent"=> if self.pher_t > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher_t, GRAY);
+            } else if self.pher_h > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher_h, LIME);
+            } else if self.pher_f > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher_f, MAROON);
+            } else if self.pher_d > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher_d, VIOLET);
             }
             _=> println!("error color matcher")
         }
     }
     pub fn orientation(&self) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
-        let x = &self.vel.x;
-        let y = &self.vel.y;
-        let degree;
-        if x == 0 {            
+        let x = self.vel.x;
+        let y = self.vel.y;
+        let degree: f32;
+        if x == 0. {            
             let y = y.abs() == y;
             if y { 
                 return 90.;
             } else {
-                return = 270.;
+                return 270.;
             }
         }
         let degree = f32::to_degrees(f32::atan(y/x));
@@ -731,22 +509,22 @@ impl Things {
         match y {
             true => {match x {
                 true => return degree,
-                false => return 180 - degree,
+                false => return 180. - degree,
             }},
             false => {match x {
-                true => return 360 - degree,
-                false => return degree + 180,
+                true => return 360. - degree,
+                false => return degree + 180.,
             }}
         }
     }
     pub fn degree_finder(x: f32, y: f32) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
-        let degree;
-        if x == 0 {            
+        let degree:f32;
+        if x == 0. {            
             let y = y.abs() == y;
             if y { 
                 return 90.;
             } else {
-                return = 270.;
+                return 270.;
             }
         }
         let degree = f32::to_degrees(f32::atan(y/x));
@@ -755,11 +533,11 @@ impl Things {
         match y {
             true => {match x {
                 true => return degree,
-                false => return 180 - degree,
+                false => return 180. - degree,
             }},
             false => {match x {
-                true => return 360 - degree,
-                false => return degree + 180,
+                true => return 360. - degree,
+                false => return degree + 180.,
             }}
         }
     }
@@ -772,18 +550,34 @@ impl Things {
          */
         let xdis = self.pos.x - check_pos.x;
         let ydis = self.pos.y - check_pos.y;
-        if f32::sqrtf32(xdis*xdis + ydis*ydis) > self.detect { return false }
+        if (xdis*xdis + ydis*ydis).sqrt() > self.detect { return false }
 
         let degree = modulo(Self::degree_finder(xdis, ydis), 360.) - self.orientation();
         if degree.abs() >= 45. { return false }
         true
     
     }
-    pub fn move_to_food(&self) {
-        let topSpeed = self.strength *2. - self.mass - self.armor;
-        let speed =  self.strength - self.mass - self.armor;
-        let stamina = self.stamina;
+    fn turn_right(&self, big: bool) {
         
+    }
+    fn turn_left(&self, big: bool) {
+
+    }
+
+    pub fn move_to_food(&self, food: Vec<Things>, ToFood: Vec<Things>) {
+        let speed =  self.strength - self.mass - self.armor;
+
+        let mut viewRange:Vec<Things> = Vec::new();
+
+        for i in food {
+            if self.in_detect_range_check(i.pos) { viewRange.push(i); }
+        }
+        
+        // something about moving towards food, otherwise continue to the pheremones. Ignore pheramones in favor of food
+        
+        for i in ToFood {
+            if self.in_detect_range_check(i.pos) { viewRange.push(i); }
+        }
         
         
 
