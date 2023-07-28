@@ -25,7 +25,7 @@ impl Collection {
     let Everything: Vec<Vec<Vec<Things>>> = vec![All_ants, All_food, All_scents];
 
     let Testing = Self { Everything };
-    Everything
+    Testing
   }
 
 }

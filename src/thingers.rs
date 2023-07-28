@@ -95,7 +95,7 @@ impl Things {
         };
         q
     }
-    pub fn birth(&self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. 
+    pub fn birth(&mut self) -> Vec<Things> { // Possible to place fn in collections file, more thinking needed, spits out unsorted kids vec. 
         let mut kids: Vec<Things> = Vec::new();
         self.vel = vec2(0., 0.);
         self.hunger -= 3.;
@@ -117,7 +117,7 @@ impl Things {
         }
         kids
     }
-    pub fn feed(queen: Vec<Things>, food: Vec<Vec<Things>>,) -> (Vec<Things>, Vec<Vec<Things>>) { //causes all queens to feed, containes updated queens, updated food
+    pub fn feed(mut queen: Vec<Things>, mut food: Vec<Vec<Things>>,) -> (Vec<Things>, Vec<Vec<Things>>) { //causes all queens to feed, containes updated queens, updated food
 
         for i in 0..queen.len() {
             for x in 0..food.len() {    
@@ -128,7 +128,7 @@ impl Things {
 
                     if distr < 5. {
                         queen[i].hunger += food[x][j].mass;
-                        food[x][j].remove();
+                        food[x].remove(j);
                         while queen[i].hunger > 10. {
                             let fat = queen[i].hunger - 10.;
                             queen[i].hunger -= fat;
@@ -198,6 +198,7 @@ impl Things {
         raw_food
     }
     fn convert_to_food(mut deadOnes: Vec<Things>) -> Vec<Things> { //changes dead ants into food
+        let mut newFood = Vec::new();
         for mut i in deadOnes {
                 i.alligence = 0;
                 i.otype = "food".to_string();
@@ -216,8 +217,9 @@ impl Things {
                 i.pher_h = 0.;
                 i.detect = 0.;
                 i.mass *= 0.9;
+                newFood.push(i);
             }
-            deadOnes
+            newFood
         }
     fn siphon_food(&self, mass:f32) -> Things { //only to be used in the beginning of the simulation
             let f = Things {
@@ -351,19 +353,14 @@ impl Things {
             phers[i].pher_f *= 0.3;
             phers[i].pher_t *= 0.3;
             phers[i].pher_h *= 0.3;
-            new_phers.append(Self::new_pher(phers[i]));
-            new_phers.append(Self::new_pher(phers[i]));
-            new_phers.append(Self::new_pher(phers[i]));
+            new_phers.append(&mut Self::new_pher(&phers[i]));
+            new_phers.append(&mut Self::new_pher(&phers[i]));
+            new_phers.append(&mut Self::new_pher(&phers[i]));
         }
-        let finish = Vec::new();
-        for i in new_phers {
-            if i.pher_h < 0.2 && i.pher_t < 0.2 && i.pher_d < 0.2 && i.pher_f < 0.2 {
-                None;
-            } else {
-                finish.append(i);
-            }
-        }
-        finish
+        new_phers.retain(|i| i.pher_h < 0.2 && i.pher_t < 0.2 && i.pher_d < 0.2 && i.pher_f < 0.2);
+        new_phers
+
+        
     }
 }
 impl Things {
@@ -450,29 +447,29 @@ impl Things {
 impl Things {
     // general fn, overlaping classes
     pub fn sorter(chaos: Vec<Things>) -> (Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>) {
-        let queen:Vec<Things> = Vec::new();
-        let worker:Vec<Things> = Vec::new();
-        let soldier:Vec<Things> = Vec::new();
-        let defender:Vec<Things> = Vec::new();
-        let scout:Vec<Things> = Vec::new();
-        let food :Vec<Things> = Vec::new();
-        let scent:Vec<Things> = Vec::new();
+        let mut queen:Vec<Things> = Vec::new();
+        let mut worker:Vec<Things> = Vec::new();
+        let mut soldier:Vec<Things> = Vec::new();
+        let mut defender:Vec<Things> = Vec::new();
+        let mut scout:Vec<Things> = Vec::new();
+        let mut food :Vec<Things> = Vec::new();
+        let mut scent:Vec<Things> = Vec::new();
         for mut i in chaos{
-            match i.otype {
+            match i.otype.as_str() {
                 "queen" => queen.push(i),
                 "worker" => worker.push(i),
                 "soldier" => soldier.push(i),
                 "defender" => defender.push(i),
                 "scout" => scout.push(i),
-                "food" => food.append(i),
+                "food" => food.push(i),
                 "scent" => scent.push(i),
-                _ => println!("faliure found, sorter fn sourced"),
+                _ => println!("faliure in the sorter fn"),
             }
         }
         (queen,worker,soldier,defender,scout,food,scent)
     }
     pub fn colorShaper(&self) {
-        match self.otype {
+        match self.otype.as_str() {
             "worker"=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
             "queen"=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
             "soldier"=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
@@ -488,7 +485,7 @@ impl Things {
             } else if self.pher_d > 0. {
                 draw_circle(self.pos.x, self.pos.y, self.pher_d, VIOLET);
             }
-            _=> println!("error color matcher")
+            _=> println!("error within the color matcher fn")
         }
     }
     pub fn orientation(&self) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
@@ -557,27 +554,26 @@ impl Things {
         true
     
     }
-    fn turn_right(&self, big: bool) {
-        
+    fn turn_right(&mut self, current_degree: f32, far: bool) {
+        let a = self.vel.x;
+        let b = self.vel.y;
+        let c = (a*a)+(b*b).sqrt();
+        let new_degree = current_degree - 18.;
+        if far { let new_degree = new_degree - 18.; }
+        self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-    fn turn_left(&self, big: bool) {
-
+    fn turn_left(&mut self, current_degree: f32, far: bool) {
+        let a = self.vel.x;
+        let b = self.vel.y;
+        let c = (a*a)+(b*b).sqrt();
+        let new_degree = current_degree + 18.;
+        if far { let new_degree = new_degree + 18.; }
+        self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
 
-    pub fn move_to_food(&self, food: Vec<Things>, ToFood: Vec<Things>) {
-        let speed =  self.strength - self.mass - self.armor;
+    pub fn move_to_food(&mut self, food: Vec<Things>, to_food: Vec<Things>) {
 
-        let mut viewRange:Vec<Things> = Vec::new();
 
-        for i in food {
-            if self.in_detect_range_check(i.pos) { viewRange.push(i); }
-        }
-        
-        // something about moving towards food, otherwise continue to the pheremones. Ignore pheramones in favor of food
-        
-        for i in ToFood {
-            if self.in_detect_range_check(i.pos) { viewRange.push(i); }
-        }
         
         
 
