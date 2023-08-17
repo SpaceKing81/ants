@@ -6,9 +6,10 @@ use macroquad::{
 
 
 fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, {((a % b) + b) % b} // calculate modulus operations
-  /* possible ideas/additions to add later:
+/* possible ideas/additions to add later:
 
   */
+#[derive(Clone)]
 pub struct Things {
     // What colony it belongs to
     alligence: i32,
@@ -514,7 +515,7 @@ impl Things {
             }}
         }
     }
-    pub fn degree_finder(x: f32, y: f32) -> f32 { // takes a specifice ant, and returns its angle of orientation based on its velocity
+    pub fn degree_finder(x: f32, y: f32) -> f32 { // takes an x and y movment, and returns its angle of orientation
         let degree:f32;
         if x == 0. {            
             let y = y.abs() == y;
@@ -540,10 +541,11 @@ impl Things {
     }
     pub fn in_detect_range_check(&self, check_pos: Vec2) -> bool {
         /*
-        first check if object is in circular detection range
+        first checks if object is in circular detection range
         second find the absolute equation of the circle with a radius of ant detection, with Vec2<0,0> being origin.
         math to find equation describing all points that reside in the circle
         true, false
+        done
          */
         let xdis = self.pos.x - check_pos.x;
         let ydis = self.pos.y - check_pos.y;
@@ -553,6 +555,13 @@ impl Things {
         if degree.abs() >= 45. { return false }
         true
     
+    }
+    fn far_away(&self, check_pos: Vec2) -> bool {
+        let a = self.pos.x - check_pos.x;
+        let b = self.pos.y - check_pos.y;
+        let c = ((a*a) + (b*b)).sqrt();
+        if c <= self.detect {return true}
+        false
     }
     fn turn_right(&mut self, current_degree: f32, far: bool) {
         let a = self.vel.x;
@@ -570,11 +579,25 @@ impl Things {
         if far { let new_degree = new_degree + 18.; }
         self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-
+    fn food_direction_convert(&self, tempHolder: Things, amountFood: i32) -> (&str, f32) {
+        let 
+    }
     pub fn move_to_food(&mut self, food: Vec<Things>, to_food: Vec<Things>) {
-
-
-        
+        let mut tempFoodHolder = Vec::new();
+        let mut foodCount = 0;
+        for i in food {
+            if Self::in_detect_range_check(&self, i.pos) {
+                tempFoodHolder.push(i.clone());
+                foodCount = foodCount + 1;
+            }
+        }
+        for i in to_food {
+            if Self::in_detect_range_check(&self, i.pos) {
+                tempFoodHolder.push(i.clone());
+            }
+        }
+        let newVec: Vec<Things> = Vec::new();
+        tempFoodHolder.iter().for_each(|x| newVec.push(self.food_direction_convert(x, foodCount)));
         
 
         self.pos += self.vel;
