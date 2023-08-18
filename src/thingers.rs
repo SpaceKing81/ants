@@ -579,8 +579,29 @@ impl Things {
         if far { let new_degree = new_degree + 18.; }
         self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-    fn food_direction_convert(&self, tempHolder: Things, amountFood: i32) -> (&str, f32) {
-        let 
+    
+    
+    fn food_direction_convert(&self, tempHolder: Vec<Things>, amountFood: i32) -> Vec<(&str, f32)> {
+        let mut output: Vec<Things> = Vec::new();
+        let mut q = 0;
+        if amountFood > 0 {
+            for i in tempHolder {
+                let x = self.pos.x - i.pos.x;
+                let y = self.pos.y - i.pos.y;
+                let r = (x*x + y*y).sqrt();
+                let theta = Self::degree_finder(x, y);
+                let mut direction: char = 'u'
+                match theta {
+                    >= 81. && < 99. => direction = 's',
+                    _=> println!("Error with deciding turn fn for food"),
+                }
+            }
+        }
+
+
+       let arurth = vec![("22", 3.9)];
+       return arurth;
+
     }
     pub fn move_to_food(&mut self, food: Vec<Things>, to_food: Vec<Things>) {
         let mut tempFoodHolder = Vec::new();
@@ -596,8 +617,8 @@ impl Things {
                 tempFoodHolder.push(i.clone());
             }
         }
-        let newVec: Vec<Things> = Vec::new();
-        tempFoodHolder.iter().for_each(|x| newVec.push(self.food_direction_convert(x, foodCount)));
+        let mut newVec: Vec<(&str, f32)> = Vec::new();
+        newVec.append(Self::food_direction_convert(&self, tempFoodHolder, foodCount));
         
 
         self.pos += self.vel;
