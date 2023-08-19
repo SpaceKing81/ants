@@ -1,7 +1,7 @@
 use std::{default};
 use macroquad::{
     miniquad::{gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC, native::apple::frameworks::Object},
-    prelude::*,
+    prelude::*, rand,
 };
 
 
@@ -222,7 +222,7 @@ impl Things {
             }
             newFood
         }
-    fn siphon_food(&self, mass:f32) -> Things { //only to be used in the beginning of the simulation
+    fn siphon_food(&self, mass:f32) -> Things { //allows for spliting a large Raw-food bundle up for carrying. Used in pick_food()
             let f = Things {
                 alligence: 0,
                 otype: "food".to_string(),
@@ -347,16 +347,16 @@ impl Things {
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    fn disperse(mut phers: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
+    fn disperse(mut All_scents: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
         let mut new_phers = Vec::new();
-        for i in 0..phers.len() {
-            phers[i].pher_d *= 0.3;
-            phers[i].pher_f *= 0.3;
-            phers[i].pher_t *= 0.3;
-            phers[i].pher_h *= 0.3;
-            new_phers.append(&mut Self::new_pher(&phers[i]));
-            new_phers.append(&mut Self::new_pher(&phers[i]));
-            new_phers.append(&mut Self::new_pher(&phers[i]));
+        for i in 0..All_scents.len() {
+            All_scents[i].pher_d *= 0.3;
+            All_scents[i].pher_f *= 0.3;
+            All_scents[i].pher_t *= 0.3;
+            All_scents[i].pher_h *= 0.3;
+            new_phers.append(&mut Self::new_pher(&All_scents[i]));
+            new_phers.append(&mut Self::new_pher(&All_scents[i]));
+            new_phers.append(&mut Self::new_pher(&All_scents[i]));
         }
         new_phers.retain(|i| i.pher_h < 0.2 && i.pher_t < 0.2 && i.pher_d < 0.2 && i.pher_f < 0.2);
         new_phers
@@ -563,65 +563,119 @@ impl Things {
         if c <= self.detect {return true}
         false
     }
-    fn turn_right(&mut self, current_degree: f32, far: bool) {
+    fn turn_right(&mut self, far: bool) {
         let a = self.vel.x;
         let b = self.vel.y;
         let c = (a*a)+(b*b).sqrt();
+        let current_degree = self.orientation();
         let new_degree = current_degree - 18.;
         if far { let new_degree = new_degree - 18.; }
         self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-    fn turn_left(&mut self, current_degree: f32, far: bool) {
+    fn turn_left(&mut self, far: bool) {
         let a = self.vel.x;
         let b = self.vel.y;
         let c = (a*a)+(b*b).sqrt();
+        let current_degree = self.orientation();
         let new_degree = current_degree + 18.;
         if far { let new_degree = new_degree + 18.; }
         self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-    
-    
-    fn food_direction_convert(&self, tempHolder: Vec<Things>, amountFood: i32) -> Vec<(&str, f32)> {
-        let mut output: Vec<Things> = Vec::new();
+    fn food_direction_convert(&self, tempHolder: Vec<Things>, amountFood: i32) -> Vec<(char, f32)> {
+        let mut output: Vec<(char, f32)> = Vec::new();
         let mut q = 0;
-        if amountFood > 0 {
-            for i in tempHolder {
-                let x = self.pos.x - i.pos.x;
-                let y = self.pos.y - i.pos.y;
-                let r = (x*x + y*y).sqrt();
-                let theta = Self::degree_finder(x, y);
-                let mut direction: char = 'u'
-                match theta {
-                    >= 81. && < 99. => direction = 's',
-                    _=> println!("Error with deciding turn fn for food"),
-                }
+        for i in tempHolder {
+            let x = self.pos.x - i.pos.x;
+            let y = self.pos.y - i.pos.y;
+            let r = (x*x + y*y).sqrt();
+            let theta = Self::degree_finder(x, y);
+            let weight = 1./r;
+            let mut direction: char = 's';
+            match theta { // u=far right, r=right, s=straight, l=left, b=far left
+                45.0..=63. => direction = 'u',
+                63.0..=81. => direction = 'r',
+                81.0..=99.0 => direction = 's',
+                99.0..=117.0 => direction = 'l',
+                117.0..=135.0 => direction = 'b',
+                _=> println!("Error with direction fn for food"),
             }
+            if q < amountFood { let weight = weight * 4.; }
+            output.push((direction, weight));
+            q+=1;
         }
-
-
-       let arurth = vec![("22", 3.9)];
-       return arurth;
-
+        output
     }
-    pub fn move_to_food(&mut self, food: Vec<Things>, to_food: Vec<Things>) {
+    pub fn move_to_food(&mut self, Raw_food: Vec<Things>, Pher_f: Vec<Things>) {
         let mut tempFoodHolder = Vec::new();
         let mut foodCount = 0;
-        for i in food {
+        
+        for i in Raw_food {
             if Self::in_detect_range_check(&self, i.pos) {
                 tempFoodHolder.push(i.clone());
                 foodCount = foodCount + 1;
             }
         }
-        for i in to_food {
+
+        for i in Pher_f {
             if Self::in_detect_range_check(&self, i.pos) {
                 tempFoodHolder.push(i.clone());
             }
         }
-        let mut newVec: Vec<(&str, f32)> = Vec::new();
-        newVec.append(Self::food_direction_convert(&self, tempFoodHolder, foodCount));
-        
 
-        self.pos += self.vel;
+        let new_vec: Vec<(char, f32)> = Self::food_direction_convert(&self, tempFoodHolder, foodCount);
+        
+        let (
+                mut amountFarLeft, 
+                mut amountLeft, 
+                mut amountStraight, 
+                mut amountRight, 
+                mut amountFarRight
+            ) = 
+                (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+
+        for &(direction, value) in &new_vec {
+            match direction {
+                'b' => amountFarLeft.push((direction, value)),
+                'l' => amountLeft.push((direction, value)),
+                's' => amountStraight.push((direction, value)),
+                'r' => amountRight.push((direction, value)),
+                'u' => amountFarRight.push((direction, value)),
+                _ => println!("error when sorting the directions of food travel")
+            }
+        }
+
+        let (mut numberFarLeft, mut numberLeft, mut numberStraight, mut numberRight, mut numberFarRight) = (0.,0.,0.,0.,0.,);
+
+        amountFarLeft.iter().for_each(|x| numberFarLeft += x.1);
+        amountLeft.iter().for_each(|x| numberLeft += x.1);
+        amountStraight.iter().for_each(|x| numberStraight += x.1);
+        amountRight.iter().for_each(|x| numberRight += x.1);
+        amountFarRight.iter().for_each(|x| numberFarRight += x.1);
+
+        numberFarLeft += rand::gen_range(0., 10.);
+        numberFarRight += rand::gen_range(0., 10.);
+        numberLeft += rand::gen_range(0., 10.);
+        numberRight += rand::gen_range(0., 10.);
+        numberStraight += rand::gen_range(0., 10.);
+
+        let (farLeft, left, straight, right, farRight) = (
+            numberFarLeft/amountFarLeft.len() as f32,
+            numberLeft/amountLeft.len() as f32,
+            numberStraight/amountStraight.len() as f32,
+            numberRight/amountRight.len() as f32,
+            numberFarRight/amountFarRight.len() as f32,
+        );
+
+        let best = farLeft.max(farRight).max(left).max(right).max(straight);
+        match best {
+            straight => self.pos += self.vel,
+            farRight => {self.turn_right(true)},
+            farLeft => {self.turn_left(true)},
+            right => {self.turn_right(false)},
+            left => {self.turn_left(false)},
+
+            _=> println!("error at the turning end lol")
+        }
     }
 
 
