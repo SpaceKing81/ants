@@ -245,19 +245,19 @@ impl Things {
             };
             f
     }
-    fn pick_food(mut self, mut foodPiece:Things) -> (Things, Things) { //ants picks up specific food piece, makes a group of ant-food that can be split up when food is delivered
+    fn pick_food(mut self, mut foodPiece:Things) -> Things { //ants picks up specific food piece, makes a group of ant-food that can be split up when food is delivered
         let takenPieceSize = &self.strength - &self.mass;
         let smallEnough = foodPiece.mass < takenPieceSize;
         if smallEnough {
             foodPiece.pos = self.pos;
             foodPiece.vel = self.vel;
             self.mass += foodPiece.mass;
-            return (self, foodPiece);
+            return foodPiece;
         }
         foodPiece.mass = foodPiece.mass - takenPieceSize;
         let takenPiece = self.siphon_food(takenPieceSize);
         self.mass += takenPiece.mass;
-        (self, takenPiece)
+        takenPiece
 
     }
 }
@@ -677,7 +677,90 @@ impl Things {
             _=> println!("error at the turning end lol")
         }
     }
+    fn to_home_direction_convert(&self, tempHolder: Vec<Things>) -> Vec<(char, f32)>{
+        let mut output: Vec<(char, f32)> = Vec::new();
+        for i in tempHolder {
+            let x = self.pos.x - i.pos.x;
+            let y = self.pos.y - i.pos.y;
+            let r = (x*x + y*y).sqrt();
+            let theta = Self::degree_finder(x, y);
+            let weight = 1./r;
+            let mut direction: char = 's';
+            match theta { // u=far right, r=right, s=straight, l=left, b=far left
+                45.0..=63. => direction = 'u',
+                63.0..=81. => direction = 'r',
+                81.0..=99.0 => direction = 's',
+                99.0..=117.0 => direction = 'l',
+                117.0..=135.0 => direction = 'b',
+                _=> println!("Error with direction fn for food"),
+            }
+            output.push((direction, weight));
+        }
+        output
+    }
+    pub fn move_to_home(&mut self, Pher_t: Vec<Things>) {
+        let mut tempHolder = Vec::new(); 
+        for i in Pher_t {
+            if Self::in_detect_range_check(&self, i.pos) {
+                tempHolder.push(i.clone());
+            }
+        }
 
+        let new_vec: Vec<(char, f32)> = self.to_home_direction_convert(tempHolder);
+        
+        let (
+                mut amountFarLeft, 
+                mut amountLeft, 
+                mut amountStraight, 
+                mut amountRight, 
+                mut amountFarRight
+            ) = 
+                (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+
+        for &(direction, value) in &new_vec {
+            match direction {
+                'b' => amountFarLeft.push((direction, value)),
+                'l' => amountLeft.push((direction, value)),
+                's' => amountStraight.push((direction, value)),
+                'r' => amountRight.push((direction, value)),
+                'u' => amountFarRight.push((direction, value)),
+                _ => println!("error when sorting the directions of food travel")
+            }
+        }
+
+        let (mut numberFarLeft, mut numberLeft, mut numberStraight, mut numberRight, mut numberFarRight) = (0.,0.,0.,0.,0.,);
+
+        amountFarLeft.iter().for_each(|x| numberFarLeft += x.1);
+        amountLeft.iter().for_each(|x| numberLeft += x.1);
+        amountStraight.iter().for_each(|x| numberStraight += x.1);
+        amountRight.iter().for_each(|x| numberRight += x.1);
+        amountFarRight.iter().for_each(|x| numberFarRight += x.1);
+
+        numberFarLeft += rand::gen_range(0., 10.);
+        numberFarRight += rand::gen_range(0., 10.);
+        numberLeft += rand::gen_range(0., 10.);
+        numberRight += rand::gen_range(0., 10.);
+        numberStraight += rand::gen_range(0., 10.);
+
+        let (farLeft, left, straight, right, farRight) = (
+            numberFarLeft/amountFarLeft.len() as f32,
+            numberLeft/amountLeft.len() as f32,
+            numberStraight/amountStraight.len() as f32,
+            numberRight/amountRight.len() as f32,
+            numberFarRight/amountFarRight.len() as f32,
+        );
+
+        let best = farLeft.max(farRight).max(left).max(right).max(straight);
+        match best {
+            straight => self.pos += self.vel,
+            farRight => {self.turn_right(true)},
+            farLeft => {self.turn_left(true)},
+            right => {self.turn_right(false)},
+            left => {self.turn_left(false)},
+
+            _=> println!("error at the turning end lol")
+        }
+    }
 
 }
 
