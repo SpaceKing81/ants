@@ -12,19 +12,19 @@ fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add
 #[derive(Clone)]
 pub struct Things {
     // What colony it belongs to
-    alligence: i32,
+    pub alligence: i32,
     // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'scent'
-    otype: String,
+    pub otype: String,
     // dead or alive
-    dead: bool,
+    pub dead: bool,
     // amount of health 0 -> dead
-    hp: f32,
+    pub hp: f32,
     // age of ant
-    age: u128,
+    pub age: u128,
     // speed in x and y
     vel: Vec2,
     // position of x and y
-    pos: Vec2,
+    pub pos: Vec2,
     // amount of food, 0 -> starving
     hunger: f32,
     // the amount that can be carried
@@ -69,7 +69,7 @@ pher_h: f32,
 
 impl Things {
     // queen ant
-    fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Things {
+    pub fn new_queen(posx: f32, posy: f32, pher_d: f32) -> Things {
         // creates new queen
         let posx = modulo(posx, screen_width());
         let posy = modulo(posy, screen_height());
@@ -198,9 +198,9 @@ impl Things {
         }
         raw_food
     }
-    fn convert_to_food(mut deadOnes: Vec<Things>) -> Vec<Things> { //changes dead ants into food
-        let mut newFood = Vec::new();
-        for mut i in deadOnes {
+    pub fn convert_to_food(mut dead_ones: Vec<Things>) -> Vec<Things> { //changes dead ants into food
+        let mut new_food = Vec::new();
+        for mut i in dead_ones {
                 i.alligence = 0;
                 i.otype = "food".to_string();
                 i.dead = true;
@@ -218,9 +218,9 @@ impl Things {
                 i.pher_h = 0.;
                 i.detect = 0.;
                 i.mass *= 0.9;
-                newFood.push(i);
+                new_food.push(i);
             }
-            newFood
+            new_food
         }
     fn siphon_food(&self, mass:f32) -> Things { //allows for spliting a large Raw-food bundle up for carrying. Used in pick_food()
             let f = Things {
@@ -347,18 +347,40 @@ impl Things {
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    fn disperse(mut All_scents: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
-        let mut new_phers = Vec::new();
-        for i in 0..All_scents.len() {
-            All_scents[i].pher_d *= 0.3;
-            All_scents[i].pher_f *= 0.3;
-            All_scents[i].pher_t *= 0.3;
-            All_scents[i].pher_h *= 0.3;
-            new_phers.append(&mut Self::new_pher(&All_scents[i]));
-            new_phers.append(&mut Self::new_pher(&All_scents[i]));
-            new_phers.append(&mut Self::new_pher(&All_scents[i]));
+    pub fn pher_sorter(scents: Vec<Things>) -> Vec<Vec<Things>> {
+        let mut pher_h = Vec::new();
+        let mut pher_f = Vec::new();
+        let mut pher_t = Vec::new();
+        let mut pher_d = Vec::new();
+        for i in scents {
+            if i.pher_d > 0.02 {
+                pher_d.push(i)
+            }
+            else if i.pher_f > 0.02 {
+                pher_f.push(i)
+            }
+            else if i.pher_h > 0.02 {
+                pher_h.push(i)
+            }
+            else if i.pher_t > 0.02 {
+                pher_t.push(i)
+            }
         }
-        new_phers.retain(|i| i.pher_h < 0.2 && i.pher_t < 0.2 && i.pher_d < 0.2 && i.pher_f < 0.2);
+        let output = vec![pher_f, pher_d, pher_t, pher_h];
+        output
+    }
+    pub fn disperse(mut all_scents: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
+        let mut new_phers = Vec::new();
+        for i in 0..all_scents.len() {
+            all_scents[i].pher_d *= 0.3;
+            all_scents[i].pher_f *= 0.3;
+            all_scents[i].pher_t *= 0.3;
+            all_scents[i].pher_h *= 0.3;
+            new_phers.append(&mut Self::new_pher(&all_scents[i]));
+            new_phers.append(&mut Self::new_pher(&all_scents[i]));
+            new_phers.append(&mut Self::new_pher(&all_scents[i]));
+        }
+        new_phers.retain(|i| i.pher_h < 0.02 && i.pher_t < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
         new_phers
 
         
@@ -761,6 +783,10 @@ impl Things {
             _=> println!("error at the turning end lol")
         }
     }
-
+    pub fn check_dead_mut(&mut self) {
+        if self.age > 1000 || self.hp <= 0. {
+            self.dead = true;
+        }
+    }    
 }
 
