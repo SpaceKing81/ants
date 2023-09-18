@@ -64,9 +64,16 @@ impl Collection {
       .flat_map(|i| i.iter_mut())
       .for_each(|j| j.check_dead_mut()); // Assuming check_dead_mut() modifies the 'dead' field
 
-      
-    
-    
+      // Extract the dead ants and append them to the Raw_food vector
+      let mut dead_ones: Vec<Things> = self.Everything[0]
+      .clone()
+      .into_iter() // Take ownership of All_ants
+      .flat_map(|ant_type| ant_type.into_iter()) // Flatten the nested vectors
+      .filter(|ant| ant.dead) // Filter dead ants
+      .collect(); // Collect them into a new vector
+
+      self.Everything[1][0].append(&mut Things::convert_to_food(dead_ones)); // Append dead ants to Raw_food after makeing them food
+
     }
   
   
