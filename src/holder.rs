@@ -1,8 +1,8 @@
-use crate::thingers::{Things, self};
+use crate::thingers::*;
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
-
-struct Collection {
+#[derive(Clone)]
+pub struct Collection {
   Everything: Vec<Vec<Vec<Things>>>,
 }
 
@@ -28,7 +28,7 @@ impl Collection {
     let Testing = Self { Everything };
     Testing
   }
-  fn step(&mut self) {
+  pub fn step(&mut self) {
     /*
     I put each step in its own little thingy. Might remove them if cross-reaching is hampered, but right now it just helps to look at
     first- update the phers, cuz they dont require anything exept the old phers to interact with an be updated - check
