@@ -1,9 +1,6 @@
+mod holder;
 use macroquad::prelude::*;
 
-mod thingers;
-mod holder;
-
-use holder::{};
 
 fn window_conf() -> Conf {
 
@@ -24,12 +21,17 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf())]
 async fn main() {
     // rand::srand(miniquad::date::now().to_bits());
-
+    let g: usize = 1;
+    let mut colonies = [];
+    for i in 0..g {
+        colonies[i] = holder::Collection::new_collection(200)
+    }
 
     loop {
+        for mut i in 0..colonies.len() {
 
         // Draw the simulation
-        // clear_background(Color::new(0.,0.,0.1,1.0));
+        clear_background(Color::new(0.,0.,0.1,1.0));
         // ants.draw_ant();
         // pieces.draw_piece();
         // ColonyImplimintation::draw_colony(&colony);
@@ -37,10 +39,10 @@ async fn main() {
         // screen_width()-500., screen_height()-5.,
         // 18.,
         // LIGHTGRAY);
-
-        // Advance the data
+            holder::Collection::step(&mut colonies[i]);
+        }
+        
         // time +=1;
-
         next_frame().await
     }
 }
