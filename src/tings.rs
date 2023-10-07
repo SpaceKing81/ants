@@ -1,4 +1,4 @@
-use std::{default};
+use std::default;
 use macroquad::{
     miniquad::{gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC, native::apple::frameworks::Object},
     prelude::*, rand,
@@ -491,7 +491,7 @@ impl Things {
         }
         (queen,worker,soldier,defender,scout,food,scent)
     }
-    pub fn colorShaper(&self) {
+    pub fn color_shaper(&self) {
         match self.otype.as_str() {
             "worker"=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
             "queen"=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),

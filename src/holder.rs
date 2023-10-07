@@ -1,4 +1,4 @@
-use crate::thingers::*;
+use crate::tings::Things;
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
 #[derive(Clone)]
@@ -78,7 +78,9 @@ impl Collection {
   
   
   }
-
+  pub fn test(test: &Things) {
+    Things::color_shaper(&test);
+  }
 }
 
 impl Collection { //Animation
