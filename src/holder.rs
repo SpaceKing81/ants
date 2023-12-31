@@ -7,7 +7,7 @@ pub struct Collection {
 }
 
 impl Collection {
-  pub fn new_collection(initial_food_pieces: u128) -> Collection { //generates the barebones structure for the thingy
+  pub fn new_collection(initial_food_pieces: u128) -> Collection { //generates the barebones structure for the tingy
     let mut Queens = vec![Things::new_queen(rand::gen_range(0., screen_width()),rand::gen_range(0., screen_height()) , 0.)];
     let mut Soldiers = Vec::new();
     let mut Scouts = Vec::new();
@@ -78,8 +78,17 @@ impl Collection {
   
   
   }
-  pub fn test(test: &Things) {
-    Things::color_shaper(&test);
+  pub fn draw_all(&self){
+    for i in &self.Everything {
+      for n in i {
+        for w in n {
+          Things::color_shaper(&w);
+        }
+      }
+    }
+  }
+  pub fn test(&self) {
+    self.draw_all()
   }
 }
 
@@ -87,6 +96,7 @@ impl Collection { //Animation
   fn animate(colony: Collection) {
 
   }
+  
 }
 
 

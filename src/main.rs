@@ -29,12 +29,12 @@ async fn main() {
     // for i in 0..g {
     //     colonies[i] = holder::Collection::new_collection(200)
     // }
-    let test = Things::new_queen(screen_width()/2., screen_height()/2., 0.);
+    let mappy = Collection::new_collection(500);
     loop {
         // for mut i in 0..colonies.len() {
         
         // // Draw the simulation
-        // clear_background(Color::new(0.,0.,0.1,1.0));
+        clear_background(Color::new(0.,0.,0.1,1.0));
         // // ants.draw_ant();
         // // pieces.draw_piece();
         // // ColonyImplimintation::draw_colony(&colony);
@@ -44,7 +44,7 @@ async fn main() {
         // // LIGHTGRAY);
         //     holder::Collection::step(&mut colonies[i]);
         // }
-        Collection::test(&test);
+        Collection::test(&mappy);
         // clear_background(Color::new(0.18,0.09,0.,1.0));
         // time +=1;
         next_frame().await

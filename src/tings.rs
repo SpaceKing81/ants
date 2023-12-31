@@ -782,11 +782,17 @@ impl Things {
 
             _=> println!("error at the turning end lol")
         }
-    }
+    }    
     pub fn check_dead_mut(&mut self) {
         if self.age > 1000 || self.hp <= 0. {
             self.dead = true;
         }
     }    
+    
+    
+    
+    pub fn test_move(&mut self, speed: Vec2) {
+        self.pos += speed;
+    }
 }
 
