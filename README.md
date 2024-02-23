@@ -19,5 +19,4 @@ Thanks for reading, I hope you enjoy the simulation, whatever stage it might be 
 
 
 Stage 1: Basic writing of core features
-
 Stage 2: Implementing the basic visuals
