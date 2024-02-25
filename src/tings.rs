@@ -222,6 +222,46 @@ impl Things {
             }
             new_food
         }
+    pub fn glob_food(food_pieces: &mut Vec<Things>, max_distance: f32) {
+        let mut grouped_indices = Vec::new();
+
+        for (i, food1) in food_pieces.iter().enumerate() {
+            if grouped_indices.contains(&i) {
+                continue; // Skip if already grouped
+            }
+
+            let mut group_mass = food1.mass;
+            let mut group_center = food1.pos * food1.mass;
+
+            for (j, food2) in food_pieces.iter().enumerate() {
+                if i == j || grouped_indices.contains(&j) {
+                    continue; // Skip if same food piece or already grouped
+                }
+
+                let distance = (food1.pos - food2.pos).length();
+
+                if distance <= max_distance {
+                    grouped_indices.push(j);
+                    group_mass += food2.mass;
+                    group_center += food2.pos * food2.mass;
+                }
+            }
+
+            // Update position of grouped food pieces
+            if group_mass > food1.mass {
+                food1.pos = group_center / group_mass;
+                food1.mass = group_mass;
+            }
+        }
+
+        // Remove grouped food pieces
+        grouped_indices.sort_by(|a, b| b.cmp(a)); // Sort in descending order
+        for i in grouped_indices {
+            food_pieces.remove(i);
+        }
+    
+    }
+    
     fn siphon_food(&self, mass:f32) -> Things { //allows for spliting a large Raw-food bundle up for carrying. Used in pick_food()
             let f = Things {
                 alligence: 0,
@@ -260,6 +300,7 @@ impl Things {
         takenPiece
 
     }
+
 }
 impl Things {
     // pheromones?
