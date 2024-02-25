@@ -29,7 +29,7 @@ async fn main() {
     // for i in 0..g {
     //     colonies[i] = holder::Collection::new_collection(200)
     // }
-    let mappy = Collection::new_collection(500);
+    let mut mappy = Collection::new_collection(500);
     loop {
         // for mut i in 0..colonies.len() {
         
@@ -44,9 +44,11 @@ async fn main() {
         // // LIGHTGRAY);
         //     holder::Collection::step(&mut colonies[i]);
         // }
-        Collection::test(&mappy);
+        //Collection::test(&mappy);
         // clear_background(Color::new(0.18,0.09,0.,1.0));
         // time +=1;
+        
+        Collection::step(&mut mappy);
         next_frame().await
     }
 }
