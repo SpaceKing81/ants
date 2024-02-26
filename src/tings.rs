@@ -1,4 +1,4 @@
-use std::default;
+use std::{default, collections::HashMap};
 use macroquad::{
     miniquad::{gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC, native::apple::frameworks::Object},
     prelude::*, rand,
@@ -285,25 +285,25 @@ impl Things {
             };
             f
     }
-    fn pick_food(mut self, mut foodPiece:Things) -> Things { //ants picks up specific food piece, makes a group of ant-food that can be split up when food is delivered
-        let takenPieceSize = &self.strength - &self.mass;
-        let smallEnough = foodPiece.mass < takenPieceSize;
-        if smallEnough {
-            foodPiece.pos = self.pos;
-            foodPiece.vel = self.vel;
-            self.mass += foodPiece.mass;
-            return foodPiece;
+    fn pick_food(mut self, mut food_piece:Things) -> Things { //ants picks up specific food piece, makes a group of ant-food that can be split up when food is delivered
+        let taken_piece_size = &self.strength - &self.mass;
+        let small_enough = food_piece.mass < taken_piece_size;
+        if small_enough {
+            food_piece.pos = self.pos;
+            food_piece.vel = self.vel;
+            self.mass += food_piece.mass;
+            return food_piece;
         }
-        foodPiece.mass = foodPiece.mass - takenPieceSize;
-        let takenPiece = self.siphon_food(takenPieceSize);
-        self.mass += takenPiece.mass;
-        takenPiece
+        food_piece.mass = food_piece.mass - taken_piece_size;
+        let taken_piece = self.siphon_food(taken_piece_size);
+        self.mass += taken_piece.mass;
+        taken_piece
 
     }
 
 }
 impl Things {
-    // pheromones?
+    // pheromones
     fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece;
         let mut new_h = Things{
             alligence: 0,
@@ -388,7 +388,7 @@ impl Things {
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    pub fn pher_sorter(scents: Vec<Things>) -> Vec<Vec<Things>> {
+    pub fn pher_sorter<'a>(scents: Vec<Things>, Foodp: &str, Dangerp: & str, THome: &str, Homep: &'a str) -> HashMap<&'a str,Vec<Things>> {
         let mut pher_h = Vec::new();
         let mut pher_f = Vec::new();
         let mut pher_t = Vec::new();
@@ -397,35 +397,90 @@ impl Things {
             if i.pher_d > 0.02 {
                 pher_d.push(i)
             }
-            else if i.pher_f > 0.02 {
+            if i.pher_f > 0.02 {
                 pher_f.push(i)
             }
-            else if i.pher_h > 0.02 {
+            if i.pher_h > 0.02 {
                 pher_h.push(i)
             }
-            else if i.pher_t > 0.02 {
+            if i.pher_t > 0.02 {
                 pher_t.push(i)
             }
         }
-        let output = vec![pher_f, pher_d, pher_t, pher_h];
+        let output:HashMap<&str, Vec<Things>> = [(Foodp,pher_f), (Dangerp,pher_d), (THome,pher_t), (Homep,pher_h)]
+        .iter()
+        .cloned()
+        .collect();
         output
     }
     pub fn disperse(mut all_scents: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
-        let mut new_phers = Vec::new();
+        let mut new_phers: Vec<Things> = Vec::new();
         for i in 0..all_scents.len() {
-            all_scents[i].pher_d *= 0.3;
-            all_scents[i].pher_f *= 0.3;
-            all_scents[i].pher_t *= 0.3;
-            all_scents[i].pher_h *= 0.3;
-            new_phers.append(&mut Self::new_pher(&all_scents[i]));
-            new_phers.append(&mut Self::new_pher(&all_scents[i]));
-            new_phers.append(&mut Self::new_pher(&all_scents[i]));
+            let random = vec2(rand::gen_range(-3., 3.), rand::gen_range(-3., 3.));
+            
+            all_scents[i].pher_d *= 0.67;
+            all_scents[i].pher_f *= 0.67;
+            all_scents[i].pher_t *= 0.67;
+            all_scents[i].pher_h *= 0.67;
+            
+            all_scents[i].pos + random;
+
+            
         }
+
         new_phers.retain(|i| i.pher_h < 0.02 && i.pher_t < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
+        Self::combine_phers(&mut new_phers);
+        
         new_phers
 
         
     }
+    fn combine_phers(new_phers: &mut Vec<Things>) {
+        let mut grouped_indices = Vec::new();
+
+        for (i, food1) in new_phers.iter().enumerate() {
+            if grouped_indices.contains(&i) {
+                continue; // Skip if already grouped
+            }
+
+            let mut group_center = food1.pos;
+            let mut group_pher_d = food1.pher_d;
+            let mut group_pher_f = food1.pher_f;
+            let mut group_pher_h = food1.pher_h;
+            let mut group_pher_t = food1.pher_t;
+
+            for (j, food2) in new_phers.iter().enumerate() {
+                if i == j || grouped_indices.contains(&j) {
+                    continue; // Skip if same pher or already grouped
+                }
+
+            
+                if group_center == food2.pos {
+                    grouped_indices.push(j);
+                    group_pher_d += food2.pher_d;
+                    group_pher_h += food2.pher_h;
+                    group_pher_f += food2.pher_f;
+                    group_pher_t += food2.pher_t;
+                }
+            }
+
+            // Update value of combined phers
+            if Some(grouped_indices) != None {
+                food1.pher_t = group_pher_t;
+                food1.pher_h = group_pher_h;
+                food1.pher_f = group_pher_f;
+                food1.pher_d = group_pher_d;
+            }
+        }
+
+        // Remove redundent phers
+        grouped_indices.sort_by(|a, b| b.cmp(a)); // Sort in descending order
+        for i in grouped_indices {
+            new_phers.remove(i);
+        }
+    
+    }
+    
 }
 impl Things {
     // scout

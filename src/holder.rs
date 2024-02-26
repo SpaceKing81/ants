@@ -7,8 +7,8 @@ pub struct Collection<'a>{
   Everything: HashMap<&'a str, HashMap<&'a str, Vec<Things>>>,
 }
 
-impl Collection{
-  pub fn new_collection(initial_food_pieces: u128) -> Collection { //generates the barebones structure for the tingy
+impl Collection<'static>{
+  pub fn new_collection<'a>(initial_food_pieces:u128) -> Collection<'a> { //generates the barebones structure for the tingy
     let mut Queens = vec![Things::new_queen(rand::gen_range(0., screen_width()),rand::gen_range(0., screen_height()) , 0.)];
     let mut Soldiers = Vec::new();
     let mut Scouts = Vec::new();
@@ -38,15 +38,15 @@ impl Collection{
       .cloned()
       .collect();
 
-    let Testing = Self { Everything };
+    let Testing: Collection<'a> = Self { Everything };
     Testing
   }
   pub fn step(&mut self) {
     /*
     I put each step in its own little thingy. Might remove them if cross-reaching is hampered, but right now it just helps to look at
     first- update the phers, cuz they dont require anything exept the old phers to interact with an be updated - check
-    second - update all the dead ants into food bits - check
-    third- make the food glob together (still have issues with this)
+    second - update all the dead ants into food bits - need to finish removing the dead ants from the Ants vec before putting into food
+    third- make the food glob together (fixed the issues?) - check?
     fourth - update the queen
     fifth - update the defenders
     sixth - update the scouts
@@ -57,50 +57,113 @@ impl Collection{
     //for q in self.Everything[2].into_iter() 
     {//step one, pher spread
       let mut old_scents: Vec<Things> = Vec::new();
-      for i in 0..3 {
-        old_scents.append(&mut self.Everything[2][i])
+      for (key,i) in self.Everything["Pher"] {
+        old_scents.append(&mut i);
       }
   
       old_scents = Things::disperse(old_scents);
+      let F = "Foodp";
+      let H = "Homep";
+      let D = "Dangerp";
+      let T = "To homep";
       
-      let mut final_scents = Things::pher_sorter(old_scents);
+      let mut final_scents = Things::pher_sorter(old_scents, F,D, T, H);
       
-      for i in 0..3 {
-        self.Everything[2][i].clear();
-        self.Everything[2][i].append(&mut final_scents[i]);
+      for (key,i) in self.Everything["Pher"] {
+        i.clear();
+        match key {
+          F => i = final_scents[F],
+          H => i = final_scents[H],
+          T => i = final_scents[T],
+          D => i = final_scents[D],
+          _=> println!("Error at Step- Pher Spread- Key values"),
+        }
       }
     }
 
 
     { //dead clean up and convertion
-      let mut new_food: Vec<Things> = Vec::new();
+      // let mut new_food: Vec<Things> = Vec::new();
   
-      self.Everything[0]
+      self.Everything["Ants"]
       .iter_mut() // Use iter_mut() to get mutable references
-      .flat_map(|i| i.iter_mut())
-      .for_each(|j| j.check_dead_mut()); // Assuming check_dead_mut() modifies the 'dead' field
+      .flat_map(|(_key, i)| i.iter_mut())
+      .for_each(|j| j.check_dead_mut()); // check_dead_mut() modifies the 'dead' field so dead things can be found easily
   
       // Extract the dead ants and append them to the Raw_food vector
-      let mut dead_ones: Vec<Things> = self.Everything[0]
+      let mut dead_ones: Vec<Things> = self.Everything["Ants"]
       .clone()
       .into_iter() // Take ownership of All_ants
-      .flat_map(|ant_type| ant_type.into_iter()) // Flatten the nested vectors
+      .flat_map(|(key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
       .filter(|ant| ant.dead) // Filter dead ants
       .collect(); // Collect them into a new vector
-  
-      self.Everything[1][0].append(&mut Things::convert_to_food(dead_ones)); // Append dead ants to Raw_food after makeing them food
+      
+
+      /* finish this code here!!!!!!!
+      self.Everything["Ants"]
+      .iter_mut() // Use iter_mut() to get mutable references
+      .flat_map(|(key, i)| i.remove(index))
+      .for_each(|j| ); //Removes dead ants from ants
+ */
+      self.Everything["Food"]["Raw_Food"].append(&mut Things::convert_to_food(dead_ones)); // Append dead ants to Raw_food after makeing them food
     }
   
 
     {//food globbing
-      Things::glob_food(&mut self.Everything[1][0], 10.)
+      Things::glob_food(&mut self.Everything["Food"]["Raw_Food"], 10.)
     }
+
+
+    { // update ants
+
+      { //update queen
+
+        for i in self.Everything["Ants"]["Queens"] {
+
+
+
+
+
+
+        }
+        
+        /*
+        override: move away from danger gains absolute priority
+        
+        always per tick, emit Home phers
+        
+        if not close to food, move to food 
+        else, consume food
+
+        stay close to Home phers, high weight to staying around the same location
+        
+        if food exedes theshold, make more ants according to skewed phers
+        
+
+         */
+
+
+      }
+
+    }
+
 
   }
 
 
   
-  pub fn draw_all(&self){
+  
+  pub fn test(&self) {
+    self.draw_all()
+  }
+}
+
+
+
+impl Collection<'static>{ //Animation
+  fn animate(colony: Collection) {}
+  
+  fn draw_all(&self){
     for (key,i) in &self.Everything {
       for (dou_key,n) in i {
         for w in n {
@@ -109,18 +172,6 @@ impl Collection{
       }
     }
   }
-  pub fn test(&self) {
-    self.draw_all()
-  }
-}
-
-
-
-impl Collection { //Animation
-  fn animate(colony: Collection) {
-
-  }
-  
 }
 
 
