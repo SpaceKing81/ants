@@ -389,7 +389,7 @@ impl Things {
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    pub fn pher_sorter<'a>(scents: Vec<Things>, foodp: &'a str, dangerp: &'a str, thome: &'a str, homep: &'a str) -> HashMap<&'a str,Vec<Things>> {
+    pub fn pher_sorter<'a>(scents: Vec<Things>, foodp: &'a str, dangerp: &'a str, thome: &'a str, homep: &'a str) -> HashMap<&'a str, Vec<Things>> {
         let mut pher_h = Vec::new();
         let mut pher_f = Vec::new();
         let mut pher_t = Vec::new();
@@ -408,7 +408,7 @@ impl Things {
                 pher_t.push(i.clone())
             }
         }
-        let output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher_t), (homep,pher_h)]
+        let mut output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher_t), (homep,pher_h)]
         .iter()
         .cloned()
         .collect();

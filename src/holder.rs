@@ -57,28 +57,19 @@ impl Collection<'static> {
     //for q in self.Everything[2].into_iter() 
     {//step one, pher spread
       let mut old_scents: Vec<Things> = Vec::new();
-      for (key,i) in self.Everything["Pher"] {
-        old_scents.append(&mut i);
+      let phers_all = self.Everything.get_mut("Pher").unwrap();
+      for (_key, i) in phers_all {
+        old_scents.append(i);
       }
   
       old_scents = Things::disperse(old_scents);
-      let F = "Foodp";
-      let H = "Homep";
-      let D = "Dangerp";
-      let T = "To homep";
+      let f = "Foodp";
+      let h = "Homep";
+      let d = "Dangerp";
+      let t = "To homep";
       
-      let mut final_scents = Things::pher_sorter(old_scents, F,D, T, H);
-      
-      for (key,i) in self.Everything["Pher"] {
-        i.clear();
-        match key {
-          F => i = final_scents[F],
-          H => i = final_scents[H],
-          T => i = final_scents[T],
-          D => i = final_scents[D],
-          _=> println!("Error at Step- Pher Spread- Key values"),
-        }
-      }
+      let final_scents = Things::pher_sorter(old_scents, f,d, t, h);
+      self.Everything.insert("Pher", final_scents);
     }
 
 
@@ -103,6 +94,8 @@ impl Collection<'static> {
       let mut food = Things::convert_to_food(dead_ones);
       self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap().append(&mut food);
 
+      
+      
       }
       
       
