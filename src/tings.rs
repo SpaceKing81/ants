@@ -10,11 +10,12 @@ fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add
 
   */
 #[derive(Clone)]
+#[derive(Copy)]
 pub struct Things {
     // What colony it belongs to
-    pub alligence: i32,
-    // 'worker' 'queen' 'soldier' 'defender' 'scout' 'food' 'scent'
-    pub otype: String,
+    pub alligence: u32,
+    // w = 'worker' q = 'queen' k = 'soldier' d = 'defender' s = 'scout' f = 'food' p = 'scent'
+    pub otype: char,
     // dead or alive
     pub dead: bool,
     // amount of health 0 -> dead
@@ -47,8 +48,8 @@ pub struct Things {
     detect: f32,
 }
 /*Things {
-alligence: i32,
-otype: str,
+alligence: u32,
+otype: char,
 dead: bool,
 hp: f32,
 age: u128
@@ -76,7 +77,7 @@ impl Things {
 
         let mut q: Things = Things {
             alligence: 0,
-            otype: "queen".to_string(),
+            otype: 'q',
             dead: false,
             hp: 10.,
             age: 0,
@@ -147,7 +148,7 @@ impl Things {
     fn new_worker(&self) -> Things {
         let mut w: Things = Things {
             alligence: 0,
-            otype: "worker".to_string(),
+            otype: 'w',
             dead: false,
             hp: 8.,
             age: 0,
@@ -176,7 +177,7 @@ impl Things {
         for i in 0..amount {
             let f = Things {
                 alligence: 0,
-                otype: "food".to_string(),
+                otype: 'f',
                 dead: true,
                 hp: 0.,
                 age: 0,
@@ -198,11 +199,11 @@ impl Things {
         }
         raw_food
     }
-    pub fn convert_to_food(mut dead_ones: Vec<Things>) -> Vec<Things> { //changes dead ants into food
+    pub fn convert_to_food(dead_ones: Vec<Things>) -> Vec<Things> { //changes dead ants into food
         let mut new_food = Vec::new();
         for mut i in dead_ones {
                 i.alligence = 0;
-                i.otype = "food".to_string();
+                i.otype = 'f';
                 i.dead = true;
                 i.hp = 0.;
                 i.age = 0;
@@ -225,20 +226,20 @@ impl Things {
     pub fn glob_food(food_pieces: &mut Vec<Things>, max_distance: f32) {
         let mut grouped_indices = Vec::new();
 
-        for (i, food1) in food_pieces.iter().enumerate() {
+        for i in 0..food_pieces.len() {
             if grouped_indices.contains(&i) {
                 continue; // Skip if already grouped
             }
 
-            let mut group_mass = food1.mass;
-            let mut group_center = food1.pos * food1.mass;
+            let mut group_mass = food_pieces[i].mass;
+            let mut group_center = food_pieces[i].pos * food_pieces[i].mass;
 
             for (j, food2) in food_pieces.iter().enumerate() {
                 if i == j || grouped_indices.contains(&j) {
                     continue; // Skip if same food piece or already grouped
                 }
 
-                let distance = (food1.pos - food2.pos).length();
+                let distance = (food_pieces[i].pos - food2.pos).length();
 
                 if distance <= max_distance {
                     grouped_indices.push(j);
@@ -248,9 +249,9 @@ impl Things {
             }
 
             // Update position of grouped food pieces
-            if group_mass > food1.mass {
-                food1.pos = group_center / group_mass;
-                food1.mass = group_mass;
+            if group_mass > food_pieces[i].mass {
+                food_pieces[i].pos = group_center / group_mass;
+                food_pieces[i].mass = group_mass;
             }
         }
 
@@ -265,7 +266,7 @@ impl Things {
     fn siphon_food(&self, mass:f32) -> Things { //allows for spliting a large Raw-food bundle up for carrying. Used in pick_food()
             let f = Things {
                 alligence: 0,
-                otype: "food".to_string(),
+                otype: 'f',
                 dead: true,
                 hp: 0.,
                 age: 0,
@@ -307,7 +308,7 @@ impl Things {
     fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece;
         let mut new_h = Things{
             alligence: 0,
-            otype: "scent".to_string(),
+            otype: 'p',
             dead: false,
             hp: 0.,
             age: 0,
@@ -327,7 +328,7 @@ impl Things {
         };
         let mut new_f = Things{
             alligence: 0,
-            otype: "scent".to_string(),
+            otype: 'p',
             dead: false,
             hp: 0.,
             age: 0,
@@ -347,7 +348,7 @@ impl Things {
         };
         let mut new_d = Things{
             alligence: 0,
-            otype: "scent".to_string(),
+            otype: 'p',
             dead: false,
             hp: 0.,
             age: 0,
@@ -367,7 +368,7 @@ impl Things {
         };
         let mut new_t = Things{
             alligence: 0,
-            otype: "scent".to_string(),
+            otype: 'p',
             dead: false,
             hp: 0.,
             age: 0,
@@ -388,26 +389,26 @@ impl Things {
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    pub fn pher_sorter<'a>(scents: Vec<Things>, Foodp: &str, Dangerp: & str, THome: &str, Homep: &'a str) -> HashMap<&'a str,Vec<Things>> {
+    pub fn pher_sorter<'a>(scents: Vec<Things>, foodp: &'a str, dangerp: &'a str, thome: &'a str, homep: &'a str) -> HashMap<&'a str,Vec<Things>> {
         let mut pher_h = Vec::new();
         let mut pher_f = Vec::new();
         let mut pher_t = Vec::new();
         let mut pher_d = Vec::new();
         for i in scents {
             if i.pher_d > 0.02 {
-                pher_d.push(i)
+                pher_d.push(i.clone())
             }
             if i.pher_f > 0.02 {
-                pher_f.push(i)
+                pher_f.push(i.clone())
             }
             if i.pher_h > 0.02 {
-                pher_h.push(i)
+                pher_h.push(i.clone())
             }
             if i.pher_t > 0.02 {
-                pher_t.push(i)
+                pher_t.push(i.clone())
             }
         }
-        let output:HashMap<&str, Vec<Things>> = [(Foodp,pher_f), (Dangerp,pher_d), (THome,pher_t), (Homep,pher_h)]
+        let output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher_t), (homep,pher_h)]
         .iter()
         .cloned()
         .collect();
@@ -438,16 +439,16 @@ impl Things {
     fn combine_phers(new_phers: &mut Vec<Things>) {
         let mut grouped_indices = Vec::new();
 
-        for (i, food1) in new_phers.iter().enumerate() {
+        for i in 0..new_phers.len() {
             if grouped_indices.contains(&i) {
                 continue; // Skip if already grouped
             }
 
-            let mut group_center = food1.pos;
-            let mut group_pher_d = food1.pher_d;
-            let mut group_pher_f = food1.pher_f;
-            let mut group_pher_h = food1.pher_h;
-            let mut group_pher_t = food1.pher_t;
+            let  group_center = new_phers[i].pos;
+            let mut group_pher_d = new_phers[i].pher_d;
+            let mut group_pher_f = new_phers[i].pher_f;
+            let mut group_pher_h = new_phers[i].pher_h;
+            let mut group_pher_t = new_phers[i].pher_t;
 
             for (j, food2) in new_phers.iter().enumerate() {
                 if i == j || grouped_indices.contains(&j) {
@@ -465,11 +466,11 @@ impl Things {
             }
 
             // Update value of combined phers
-            if Some(grouped_indices) != None {
-                food1.pher_t = group_pher_t;
-                food1.pher_h = group_pher_h;
-                food1.pher_f = group_pher_f;
-                food1.pher_d = group_pher_d;
+            if grouped_indices.len() > 0 {
+                new_phers[i].pher_t = group_pher_t;
+                new_phers[i].pher_h = group_pher_h;
+                new_phers[i].pher_f = group_pher_f;
+                new_phers[i].pher_d = group_pher_d;
             }
         }
 
@@ -487,7 +488,7 @@ impl Things {
     fn new_scout(&self) -> Things {
         let mut s: Things = Things {
             alligence: 0,
-            otype: "scout".to_string(),
+            otype: 's',
             dead: false,
             hp: 10.,
             age: 0,
@@ -514,7 +515,7 @@ impl Things {
     fn new_soldier(&self) -> Things {
         let mut a: Things = Things {
             alligence: 0,
-            otype: "soldier".to_string(),
+            otype: 'k',
             dead: false,
             hp: 20.,
             age: 0,
@@ -541,7 +542,7 @@ impl Things {
     fn new_defender(&self) -> Things {
         let mut d: Things = Things {
             alligence: 0,
-            otype: "defender".to_string(),
+            otype: 'd',
             dead: false,
             hp: 50.,
             age: 0,
@@ -574,28 +575,28 @@ impl Things {
         let mut food :Vec<Things> = Vec::new();
         let mut scent:Vec<Things> = Vec::new();
         for mut i in chaos{
-            match i.otype.as_str() {
-                "queen" => queen.push(i),
-                "worker" => worker.push(i),
-                "soldier" => soldier.push(i),
-                "defender" => defender.push(i),
-                "scout" => scout.push(i),
-                "food" => food.push(i),
-                "scent" => scent.push(i),
+            match i.otype {
+                'q' => queen.push(i),
+                'w' => worker.push(i),
+                'k' => soldier.push(i),
+                'd' => defender.push(i),
+                's' => scout.push(i),
+                'f' => food.push(i),
+                'p' => scent.push(i),
                 _ => println!("faliure in the sorter fn"),
             }
         }
         (queen,worker,soldier,defender,scout,food,scent)
     }
     pub fn color_shaper(&self) {
-        match self.otype.as_str() {
-            "worker"=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
-            "queen"=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
-            "soldier"=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
-            "defender"=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
-            "scout"=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
-            "food"=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
-            "scent"=> if self.pher_t > 0. {
+        match self.otype {
+            'w'=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
+            'q'=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
+            'k'=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
+            'd'=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
+            's'=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
+            'f'=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
+            'p'=> if self.pher_t > 0. {
                 draw_circle(self.pos.x, self.pos.y, self.pher_t, GRAY);
             } else if self.pher_h > 0. {
                 draw_circle(self.pos.x, self.pos.y, self.pher_h, LIME);
@@ -884,11 +885,14 @@ impl Things {
             self.dead = true;
         }
     }    
+}
     
-    
-    
+impl Things {
+    // Testing fn
     pub fn test_move(&mut self, speed: Vec2) {
         self.pos += speed;
     }
-}
+
+}  
+
 

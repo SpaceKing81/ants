@@ -7,7 +7,7 @@ pub struct Collection<'a>{
   Everything: HashMap<&'a str, HashMap<&'a str, Vec<Things>>>,
 }
 
-impl Collection<'static>{
+impl Collection<'static> {
   pub fn new_collection<'a>(initial_food_pieces:u128) -> Collection<'a> { //generates the barebones structure for the tingy
     let mut Queens = vec![Things::new_queen(rand::gen_range(0., screen_width()),rand::gen_range(0., screen_height()) , 0.)];
     let mut Soldiers = Vec::new();
@@ -83,34 +83,43 @@ impl Collection<'static>{
 
 
     { //dead clean up and convertion
-      // let mut new_food: Vec<Things> = Vec::new();
-  
-      self.Everything["Ants"]
-      .iter_mut() // Use iter_mut() to get mutable references
-      .flat_map(|(_key, i)| i.iter_mut())
-      .for_each(|j| j.check_dead_mut()); // check_dead_mut() modifies the 'dead' field so dead things can be found easily
-  
-      // Extract the dead ants and append them to the Raw_food vector
-      let mut dead_ones: Vec<Things> = self.Everything["Ants"]
-      .clone()
-      .into_iter() // Take ownership of All_ants
-      .flat_map(|(key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
-      .filter(|ant| ant.dead) // Filter dead ants
-      .collect(); // Collect them into a new vector
+
+      if let Some(all_ants) = self.Everything.get_mut("Ants") {
+        for (_group, ants) in all_ants.iter_mut() { // goes through each ant type
+          for ant in ants.iter_mut() { // goes over every ant in each ant type
+            ant.check_dead_mut()  // check_dead_mut() modifies the 'dead' field so dead things can be found easily
+          }
+        } 
+        let mut dead_ones: Vec<Things> = self.Everything["Ants"]
+        .clone() //Clones the Hashmap so that you can make one of just dead ants
+        .into_iter() // Take ownership of All_ants
+        .flat_map(|(key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
+        .filter(|ant| ant.dead) // Filter dead ants
+        .collect(); // Collect them into a new vector
+
       
 
-      /* finish this code here!!!!!!!
-      self.Everything["Ants"]
-      .iter_mut() // Use iter_mut() to get mutable references
-      .flat_map(|(key, i)| i.remove(index))
-      .for_each(|j| ); //Removes dead ants from ants
- */
-      self.Everything["Food"]["Raw_Food"].append(&mut Things::convert_to_food(dead_ones)); // Append dead ants to Raw_food after makeing them food
-    }
+      // Extract the dead ants and append them to the Raw_food vector
+      let mut food = Things::convert_to_food(dead_ones);
+      self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap().append(&mut food);
+
+      }
+      
+      
+  
+      // finish this code here!!!!!!!
+      
+      
+      
+      }
   
 
-    {//food globbing
-      Things::glob_food(&mut self.Everything["Food"]["Raw_Food"], 10.)
+    { //food globbing
+
+
+      // Things::glob_food(&mut self.Everything["Food"]["Raw_Food"], 10.)
+    
+    
     }
 
 
@@ -118,14 +127,8 @@ impl Collection<'static>{
 
       { //update queen
 
-        for i in self.Everything["Ants"]["Queens"] {
-
-
-
-
-
-
-        }
+        // for i in self.Everything["Ants"]["Queens"] {
+        // }
         
         /*
         override: move away from danger gains absolute priority
@@ -148,16 +151,16 @@ impl Collection<'static>{
     }
 
 
+
+
+  
+  
   }
-
-
-  
-  
   pub fn test(&self) {
     self.draw_all()
   }
-}
 
+}
 
 
 impl Collection<'static>{ //Animation
