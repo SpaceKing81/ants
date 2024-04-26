@@ -42,7 +42,7 @@ pub struct Things {
     // Pheromone strength of what the scent conveys: 'f'food 'd'danger 't'tohome 'h'home
     pher_f: f32,
     pher_d: f32,
-    pher_t: f32,
+    pher: f32,
     pher_h: f32,
     // Detection Range of Pheromone, the distance an ant can detect different pheromones
     detect: f32,
@@ -64,7 +64,7 @@ mass: f32,
 stamina: f32,
 pher_f: f32,
 pher_d: f32,
-pher_t: f32,
+pher: f32,
 pher_h: f32,
 */
 
@@ -91,7 +91,7 @@ impl Things {
             stamina: 10.,
             pher_f: 3.,
             pher_d,
-            pher_t: 0.,
+            pher: 0.,
             pher_h: 10.,
             detect: 4.,
         };
@@ -162,7 +162,7 @@ impl Things {
             stamina: 30.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher_t: 10.,
+            pher: 10.,
             pher_h: 0.,
             detect: 7.,
             
@@ -191,7 +191,7 @@ impl Things {
                 stamina: 0.,
                 pher_f: 0.,
                 pher_d: 0.,
-                pher_t: 0.,
+                pher: 0.,
                 pher_h: 0.,
                 detect: 0.,
             };
@@ -215,7 +215,7 @@ impl Things {
                 i.stamina = 0.;
                 i.pher_f = 0.;
                 i.pher_d = 0.;
-                i.pher_t = 0.;
+                i.pher = 0.;
                 i.pher_h = 0.;
                 i.detect = 0.;
                 i.mass *= 0.9;
@@ -280,7 +280,7 @@ impl Things {
                 stamina: 0.,
                 pher_f: 0.,
                 pher_d: 0.,
-                pher_t: 0.,
+                pher: 0.,
                 pher_h: 0.,
                 detect: 0.,
             };
@@ -322,7 +322,7 @@ impl Things {
             stamina: 0.,
             pher_f: 0.,
             pher_d: 0.,
-            pher_t: 0.,
+            pher: 0.,
             pos: vec2(rand::gen_range(0., self.pher_h) + self.pos.x, rand::gen_range(0., self.pher_h) + self.pos.y),
             pher_h: self.pher_h,
         };
@@ -342,7 +342,7 @@ impl Things {
             stamina: 0.,
             pher_h: 0.,
             pher_d: 0.,
-            pher_t: 0.,
+            pher: 0.,
             pos: vec2(rand::gen_range(0., self.pher_f) + self.pos.x, rand::gen_range(0., self.pher_f) + self.pos.y),
             pher_f: self.pher_f,
         };
@@ -362,7 +362,7 @@ impl Things {
             stamina: 0.,
             pher_f: 0.,
             pher_h: 0.,
-            pher_t: 0.,
+            pher: 0.,
             pos: vec2(rand::gen_range(0., self.pher_d) + self.pos.x, rand::gen_range(0., self.pher_d) + self.pos.y),
             pher_d: self.pher_d,
         };
@@ -383,8 +383,8 @@ impl Things {
             pher_f: 0.,
             pher_d: 0.,
             pher_h: 0.,
-            pos: vec2(rand::gen_range(0., self.pher_t) + self.pos.x, rand::gen_range(0., self.pher_t) + self.pos.y),
-            pher_t: self.pher_t,
+            pos: vec2(rand::gen_range(0., self.pher) + self.pos.x, rand::gen_range(0., self.pher) + self.pos.y),
+            pher: self.pher,
         };
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
@@ -392,7 +392,7 @@ impl Things {
     pub fn pher_sorter<'a>(scents: Vec<Things>, foodp: &'a str, dangerp: &'a str, thome: &'a str, homep: &'a str) -> HashMap<&'a str, Vec<Things>> {
         let mut pher_h = Vec::new();
         let mut pher_f = Vec::new();
-        let mut pher_t = Vec::new();
+        let mut pher = Vec::new();
         let mut pher_d = Vec::new();
         for i in scents {
             if i.pher_d > 0.02 {
@@ -404,11 +404,11 @@ impl Things {
             if i.pher_h > 0.02 {
                 pher_h.push(i.clone())
             }
-            if i.pher_t > 0.02 {
-                pher_t.push(i.clone())
+            if i.pher > 0.02 {
+                pher.push(i.clone())
             }
         }
-        let mut output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher_t), (homep,pher_h)]
+        let mut output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher), (homep,pher_h)]
         .iter()
         .cloned()
         .collect();
@@ -421,7 +421,7 @@ impl Things {
             
             all_scents[i].pher_d *= 0.67;
             all_scents[i].pher_f *= 0.67;
-            all_scents[i].pher_t *= 0.67;
+            all_scents[i].pher *= 0.67;
             all_scents[i].pher_h *= 0.67;
             
             all_scents[i].pos + random;
@@ -429,7 +429,7 @@ impl Things {
             
         }
 
-        new_phers.retain(|i| i.pher_h < 0.02 && i.pher_t < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
+        new_phers.retain(|i| i.pher_h < 0.02 && i.pher < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
         Self::combine_phers(&mut new_phers);
         
         new_phers
@@ -448,7 +448,7 @@ impl Things {
             let mut group_pher_d = new_phers[i].pher_d;
             let mut group_pher_f = new_phers[i].pher_f;
             let mut group_pher_h = new_phers[i].pher_h;
-            let mut group_pher_t = new_phers[i].pher_t;
+            let mut group_pher = new_phers[i].pher;
 
             for (j, food2) in new_phers.iter().enumerate() {
                 if i == j || grouped_indices.contains(&j) {
@@ -461,13 +461,13 @@ impl Things {
                     group_pher_d += food2.pher_d;
                     group_pher_h += food2.pher_h;
                     group_pher_f += food2.pher_f;
-                    group_pher_t += food2.pher_t;
+                    group_pher += food2.pher;
                 }
             }
 
             // Update value of combined phers
             if grouped_indices.len() > 0 {
-                new_phers[i].pher_t = group_pher_t;
+                new_phers[i].pher = group_pher;
                 new_phers[i].pher_h = group_pher_h;
                 new_phers[i].pher_f = group_pher_f;
                 new_phers[i].pher_d = group_pher_d;
@@ -502,7 +502,7 @@ impl Things {
             stamina: 50.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher_t: 10.,
+            pher: 10.,
             pher_h: 0.,
             detect: 20.,
             
@@ -529,7 +529,7 @@ impl Things {
             stamina: 50.,
             detect: 4.,
             pher_f: 0.,
-            pher_t: 10.,
+            pher: 10.,
             pher_h: 0.,
             pher_d: self.pher_d,
             
@@ -556,7 +556,7 @@ impl Things {
             stamina: 30.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher_t: 10.,
+            pher: 10.,
             pher_h: 0.,
             detect: 3.,
             
@@ -596,8 +596,8 @@ impl Things {
             'd'=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
             's'=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
             'f'=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
-            'p'=> if self.pher_t > 0. {
-                draw_circle(self.pos.x, self.pos.y, self.pher_t, GRAY);
+            'p'=> if self.pher > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher, GRAY);
             } else if self.pher_h > 0. {
                 draw_circle(self.pos.x, self.pos.y, self.pher_h, LIME);
             } else if self.pher_f > 0. {
@@ -700,14 +700,32 @@ impl Things {
         if far { let new_degree = new_degree + 18.; }
         self.vel = vec2(new_degree.cos()*c, new_degree.sin()*c)
     }
-    fn food_direction_convert(&self, tempHolder: Vec<Things>, amountFood: i32) -> Vec<(char, f32)> {
+    
+    
+    
+    pub fn check_dead_mut(&mut self) {
+        if self.age > 1000 || self.hp <= 0. {
+            self.dead = true;
+        }
+    }    
+}
+
+impl Things {
+    // Moving functions
+    fn trig_calculator(&self, i: Things) -> (f32,f32,f32,f32) {
+        let x = self.pos.x - i.pos.x;
+        let y = self.pos.y - i.pos.y;
+        let r = (x*x + y*y).sqrt();
+        let theta = Self::degree_finder(x, y);
+        (x,y,r,theta)
+    }
+
+    fn food_direction_convert(&self, temp_holder: Vec<Things>, amountFood: i32) -> Vec<(char, f32)> {
         let mut output: Vec<(char, f32)> = Vec::new();
         let mut q = 0;
-        for i in tempHolder {
-            let x = self.pos.x - i.pos.x;
-            let y = self.pos.y - i.pos.y;
-            let r = (x*x + y*y).sqrt();
-            let theta = Self::degree_finder(x, y);
+        for i in temp_holder {
+            let (_x,_y,r,theta) = self.trig_calculator(i);
+            // let (u,r,s,l,b,w) = (45.0,63.0,81.0,99.0,117.0,135.0);
             let weight = 1./r;
             let mut direction: char = 's';
             match theta { // u=far right, r=right, s=straight, l=left, b=far left
@@ -796,13 +814,10 @@ impl Things {
             _=> println!("error at the turning end lol")
         }
     }
-    fn to_home_direction_convert(&self, tempHolder: Vec<Things>) -> Vec<(char, f32)>{
+    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(char, f32)>{
         let mut output: Vec<(char, f32)> = Vec::new();
-        for i in tempHolder {
-            let x = self.pos.x - i.pos.x;
-            let y = self.pos.y - i.pos.y;
-            let r = (x*x + y*y).sqrt();
-            let theta = Self::degree_finder(x, y);
+        for i in temp_holder {
+            let (_x,_y,r,theta) = self.trig_calculator(i);
             let weight = 1./r;
             let mut direction: char = 's';
             match theta { // u=far right, r=right, s=straight, l=left, b=far left
@@ -817,15 +832,15 @@ impl Things {
         }
         output
     }
-    pub fn move_to_home(&mut self, Pher_t: Vec<Things>) {
-        let mut tempHolder = Vec::new(); 
-        for i in Pher_t {
+    pub fn move_to_home(&mut self, pher: Vec<Things>) {
+        let mut temp_holder = Vec::new(); 
+        for i in pher {
             if Self::in_detect_range_check(&self, i.pos) {
-                tempHolder.push(i.clone());
+                temp_holder.push(i.clone());
             }
         }
 
-        let new_vec: Vec<(char, f32)> = self.to_home_direction_convert(tempHolder);
+        let new_vec: Vec<(char, f32)> = self.pher_direction_convert(temp_holder);
         
         let (
                 mut amountFarLeft, 
@@ -861,7 +876,7 @@ impl Things {
         numberRight += rand::gen_range(0., 10.);
         numberStraight += rand::gen_range(0., 10.);
 
-        let (farLeft, left, straight, right, farRight) = (
+        let (far_left, left, straight, right, far_right) = (
             numberFarLeft/amountFarLeft.len() as f32,
             numberLeft/amountLeft.len() as f32,
             numberStraight/amountStraight.len() as f32,
@@ -869,24 +884,21 @@ impl Things {
             numberFarRight/amountFarRight.len() as f32,
         );
 
-        let best = farLeft.max(farRight).max(left).max(right).max(straight);
+        let best = far_left.max(far_right).max(left).max(right).max(straight);
         match best {
             straight => self.pos += self.vel,
-            farRight => {self.turn_right(true)},
-            farLeft => {self.turn_left(true)},
+            far_right => {self.turn_right(true)},
+            far_left => {self.turn_left(true)},
             right => {self.turn_right(false)},
             left => {self.turn_left(false)},
 
             _=> println!("error at the turning end lol")
         }
     }    
-    pub fn check_dead_mut(&mut self) {
-        if self.age > 1000 || self.hp <= 0. {
-            self.dead = true;
-        }
-    }    
+
+
 }
-    
+
 impl Things {
     // Testing fn
     pub fn test_move(&mut self, speed: Vec2) {

@@ -84,23 +84,26 @@ impl Collection<'static> {
         let mut dead_ones: Vec<Things> = self.Everything["Ants"]
         .clone() //Clones the Hashmap so that you can make one of just dead ants
         .into_iter() // Take ownership of All_ants
-        .flat_map(|(key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
+        .flat_map(|(_key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
         .filter(|ant| ant.dead) // Filter dead ants
         .collect(); // Collect them into a new vector
 
       
 
-      // Extract the dead ants and append them to the Raw_food vector
-      let mut food = Things::convert_to_food(dead_ones);
-      self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap().append(&mut food);
+      // Converts the dead ants to raw food
+      let mut food_final = Things::convert_to_food(dead_ones);
+      // Puts the new food into the raw food vector
+      self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap().append(&mut food_final);
 
       
       
       }
       
       
-  
-      // finish this code here!!!!!!!
+      // Consideration: What to do with picked food that ants who just died were holding
+      // Also, maybe give the dead a bit of time, maybe a holding cell where the recent dead are stored until an amount of time passes
+      // for them to be 'decomposed' enough or something. Idk.
+      
       
       
       
@@ -108,39 +111,36 @@ impl Collection<'static> {
   
 
     { //food globbing
-
-
-      // Things::glob_food(&mut self.Everything["Food"]["Raw_Food"], 10.)
-    
-    
+      // Does things cuz for some reason cant directly call it
+      let food = self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap();
+      // Calls the glob food fn and globs the food
+      Things::glob_food(food, 10.)
     }
 
 
     { // update ants
+      let ants = self.Everything.get_mut("Ants");
 
       { //update queen
+        let queens = ants.unwrap().get_mut("Raw_Food").unwrap();
 
-        // for i in self.Everything["Ants"]["Queens"] {
-        // }
-        
-        /*
-        override: move away from danger gains absolute priority
-        
-        always per tick, emit Home phers
-        
-        if not close to food, move to food 
-        else, consume food
+            
+            
+            /*
+            override: move away from danger gains absolute priority
+            
+            always per tick, emit Home phers
+            
+            if not close to food, move to food 
+            else, consume food
 
-        stay close to Home phers, high weight to staying around the same location
-        
-        if food exedes theshold, make more ants according to skewed phers
-        
+            stay close to Home phers, high weight to staying around the same location
+            
+            if food exedes theshold, make more ants according to skewed phers
+            
 
-         */
-
-
+            */ 
       }
-
     }
 
 

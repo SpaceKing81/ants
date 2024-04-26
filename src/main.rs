@@ -48,7 +48,7 @@ async fn main() {
         // clear_background(Color::new(0.18,0.09,0.,1.0));
         // time +=1;
 
-        //Collection::step(&mut mappy);
+        Collection::step(&mut mappy);
         next_frame().await
     }
 }
