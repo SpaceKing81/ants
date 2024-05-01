@@ -3,43 +3,31 @@ use std::collections::HashMap;
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
 #[derive(Clone)]
-pub struct Collection<'a>{
-  Everything: HashMap<&'a str, HashMap<&'a str, Vec<Things>>>,
+pub struct Collection{
+  everything: Vec<Vec<Vec<Things>>>,
 }
 
-impl Collection<'static> {
-  pub fn new_collection<'a>(initial_food_pieces:u128) -> Collection<'a> { //generates the barebones structure for the tingy
-    let mut Queens = vec![Things::new_queen(rand::gen_range(0., screen_width()),rand::gen_range(0., screen_height()) , 0.)];
-    let mut Soldiers = Vec::new();
-    let mut Scouts = Vec::new();
-    let mut Defenders = Vec::new();
-    let mut Workers = Vec::new();
-    let mut Held_food: Vec<Things> = Vec::new();
-    let mut Pher_t = Vec::new();
-    let mut Pher_f = Vec::new();
-    let mut Pher_h = Vec::new();
-    let mut Pher_d = Vec::new();
-    let mut Raw_food = Vec::from(Things::new_food(initial_food_pieces));
-    let mut Delivered_food = Vec::new();
-    let mut All_ants = [("Queens", Queens), ("Soldiers",Soldiers), ("Scouts",Scouts), ("Defenders",Defenders), ("Workers",Workers)]
-      .iter()
-      .cloned()
-      .collect();
-    let mut All_food:HashMap<&str, Vec<Things>> = [("Raw_food",Raw_food), ("Delivered_food",Delivered_food), ("Held_food",Held_food)]
-      .iter()
-      .cloned()
-      .collect();
-    let mut All_scents = [("Foodp",Pher_f), ("Dangerp",Pher_d), ("To homep",Pher_t), ("Homep",Pher_h)]
-      .iter()
-      .cloned()
-      .collect();
-    let mut Everything:HashMap<&str, HashMap<&str, Vec<Things>>> = [("Ants",All_ants), ("Food",All_food), ("Pher",All_scents)]
-      .iter()
-      .cloned()
-      .collect();
+impl Collection{
+  pub fn new_collection(initial_food_pieces:u128) -> Collection { //generates the barebones structure for the tingy
+    let mut queens = vec![Things::new_queen(rand::gen_range(0., screen_width()),rand::gen_range(0., screen_height()) , 0.)];
+    let mut soldiers = Vec::new();
+    let mut scouts = Vec::new();
+    let mut defenders = Vec::new();
+    let mut workers = Vec::new();
+    let mut pher_t = Vec::new();
+    let mut pher_f = Vec::new();
+    let mut pher_h = Vec::new();
+    let mut pher_d = Vec::new();
+    let mut held_food: Vec<Things> = Vec::new();
+    let mut raw_food = Vec::from(Things::new_food(initial_food_pieces));
+    let mut delivered_food = Vec::new();
+    let mut all_ants = vec![queens,soldiers,scouts,defenders,workers];
+    let mut all_food:Vec<Vec<Things>> = vec![raw_food, delivered_food, held_food];
+    let mut all_scents = vec![pher_f, pher_d, pher_t, pher_h];
+    let mut everything:Vec<Vec<Vec<Things>>> = vec![all_ants,all_food,all_scents];
 
-    let Testing: Collection<'a> = Self { Everything };
-    Testing
+    let testing: Collection = Self { everything };
+    testing
   }
   pub fn step(&mut self) {
     /*
@@ -54,50 +42,46 @@ impl Collection<'static> {
     eighth - update the workers
     ninth - draw everything
      */
-    //for q in self.Everything[2].into_iter() 
+    //for q in self.everything[2].into_iter() 
     {//step one, pher spread
       let mut old_scents: Vec<Things> = Vec::new();
-      let phers_all = self.Everything.get_mut("Pher").unwrap();
-      for (_key, i) in phers_all {
-        old_scents.append(i);
+      let phers_all = self.everything[2].clone();
+      for mut i in phers_all {
+        old_scents.append(&mut i);
       }
   
       old_scents = Things::disperse(old_scents);
-      let f = "Foodp";
-      let h = "Homep";
-      let d = "Dangerp";
-      let t = "To homep";
+
       
-      let final_scents = Things::pher_sorter(old_scents, f,d, t, h);
-      self.Everything.insert("Pher", final_scents);
+      let final_scents = Things::pher_sorter(old_scents);
+      self.everything[2] = final_scents;
     }
 
 
     { //dead clean up and convertion
+      let temp = &self.everything[0];
+      let deads:Vec<Things> = Vec::new();
+      for i in temp{
+        for j in i {
+          // INCOMPLETE!!!! NEED TO FINISH MAKING THE DEAD CHECKER AND SETTER
+        }
+      }
 
-      if let Some(all_ants) = self.Everything.get_mut("Ants") {
-        for (_group, ants) in all_ants.iter_mut() { // goes through each ant type
-          for ant in ants.iter_mut() { // goes over every ant in each ant type
-            ant.check_dead_mut()  // check_dead_mut() modifies the 'dead' field so dead things can be found easily
-          }
-        } 
-        let mut dead_ones: Vec<Things> = self.Everything["Ants"]
-        .clone() //Clones the Hashmap so that you can make one of just dead ants
-        .into_iter() // Take ownership of All_ants
-        .flat_map(|(_key, ant_type)| ant_type.into_iter()) // Flatten the nested vectors
-        .filter(|ant| ant.dead) // Filter dead ants
-        .collect(); // Collect them into a new vector
+
+      let mut dead_ones: Vec<Things> = self.everything[0]
+      .clone() //Clones the Hashmap so that you can make one of just dead ants
+      .into_iter() // Take ownership of All_ants
+      .flat_map(|(ant_type)| ant_type.into_iter()) // Flatten the nested vectors
+      .filter(|ant|ant.dead) // Filter dead ants
+      .collect(); // Collect them into a new vector
 
       
 
       // Converts the dead ants to raw food
       let mut food_final = Things::convert_to_food(dead_ones);
       // Puts the new food into the raw food vector
-      self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap().append(&mut food_final);
+      self.everything[1][0].append(&mut food_final);
 
-      
-      
-      }
       
       
       // Consideration: What to do with picked food that ants who just died were holding
@@ -111,18 +95,18 @@ impl Collection<'static> {
   
 
     { //food globbing
-      // Does things cuz for some reason cant directly call it
-      let food = self.Everything.get_mut("Food").unwrap().get_mut("Raw_Food").unwrap();
       // Calls the glob food fn and globs the food
-      Things::glob_food(food, 10.)
+      Things::glob_food(&mut self.everything[2][0], 10.)
     }
 
 
     { // update ants
-      let ants = self.Everything.get_mut("Ants");
+      let all_ants = &self.everything[0];
 
       { //update queen
-        let queens = ants.unwrap().get_mut("Raw_Food").unwrap();
+        let queens = &all_ants[0];
+
+        
 
             
             
@@ -156,19 +140,16 @@ impl Collection<'static> {
 }
 
 
-impl Collection<'static>{ //Animation
+impl Collection{ //Animation
   fn animate(colony: Collection) {}
   
   fn draw_all(&self){
-    for (key,i) in &self.Everything {
-      for (dou_key,n) in i {
-        for w in n {
+    for i in &self.everything {
+      for j in i {
+        for w in j {
           Things::color_shaper(&w);
         }
       }
     }
   }
 }
-
-
-

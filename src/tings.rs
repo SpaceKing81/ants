@@ -15,7 +15,7 @@ pub struct Things {
     // What colony it belongs to
     pub alligence: u32,
     // w = 'worker' q = 'queen' k = 'soldier' d = 'defender' s = 'scout' f = 'food' p = 'scent'
-    pub otype: char,
+    pub otype: ThingType,
     // dead or alive
     pub dead: bool,
     // amount of health 0 -> dead
@@ -42,7 +42,7 @@ pub struct Things {
     // Pheromone strength of what the scent conveys: 'f'food 'd'danger 't'tohome 'h'home
     pher_f: f32,
     pher_d: f32,
-    pher: f32,
+    pher_t: f32,
     pher_h: f32,
     // Detection Range of Pheromone, the distance an ant can detect different pheromones
     detect: f32,
@@ -64,9 +64,41 @@ mass: f32,
 stamina: f32,
 pher_f: f32,
 pher_d: f32,
-pher: f32,
+pher_t: f32,
 pher_h: f32,
 */
+#[derive(Copy)]
+#[derive(Clone)]
+enum TurnDirection {
+    far_left(f32),
+    far_right(f32),
+    Left(f32),
+    Right(f32),
+    Straight(f32),
+}
+impl TurnDirection {
+    fn unwrap(self) -> f32 {
+        match self {
+            Self::far_left(i) => i,
+            Self::far_right(i) => i,
+            Self::Straight(i) => i,
+            Self::Left(i) => i,
+            Self::Right(i) => i,
+        }
+    }
+}
+#[derive(Copy)]
+#[derive(Clone)]
+enum ThingType {
+    Food,
+    Queen,
+    Soldier,
+    Defender,
+    Scout,
+    Worker,
+    Scent,
+}
+
 
 impl Things {
     // queen ant
@@ -77,7 +109,7 @@ impl Things {
 
         let mut q: Things = Things {
             alligence: 0,
-            otype: 'q',
+            otype: ThingType::Queen,
             dead: false,
             hp: 10.,
             age: 0,
@@ -91,7 +123,7 @@ impl Things {
             stamina: 10.,
             pher_f: 3.,
             pher_d,
-            pher: 0.,
+            pher_t: 0.,
             pher_h: 10.,
             detect: 4.,
         };
@@ -148,7 +180,7 @@ impl Things {
     fn new_worker(&self) -> Things {
         let mut w: Things = Things {
             alligence: 0,
-            otype: 'w',
+            otype: ThingType::Worker,
             dead: false,
             hp: 8.,
             age: 0,
@@ -162,7 +194,7 @@ impl Things {
             stamina: 30.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher: 10.,
+            pher_t: 10.,
             pher_h: 0.,
             detect: 7.,
             
@@ -177,7 +209,7 @@ impl Things {
         for i in 0..amount {
             let f = Things {
                 alligence: 0,
-                otype: 'f',
+                otype: ThingType::Food,
                 dead: true,
                 hp: 0.,
                 age: 0,
@@ -191,7 +223,7 @@ impl Things {
                 stamina: 0.,
                 pher_f: 0.,
                 pher_d: 0.,
-                pher: 0.,
+                pher_t: 0.,
                 pher_h: 0.,
                 detect: 0.,
             };
@@ -203,7 +235,7 @@ impl Things {
         let mut new_food = Vec::new();
         for mut i in dead_ones {
                 i.alligence = 0;
-                i.otype = 'f';
+                i.otype = ThingType::Food;
                 i.dead = true;
                 i.hp = 0.;
                 i.age = 0;
@@ -215,7 +247,7 @@ impl Things {
                 i.stamina = 0.;
                 i.pher_f = 0.;
                 i.pher_d = 0.;
-                i.pher = 0.;
+                i.pher_t = 0.;
                 i.pher_h = 0.;
                 i.detect = 0.;
                 i.mass *= 0.9;
@@ -266,7 +298,7 @@ impl Things {
     fn siphon_food(&self, mass:f32) -> Things { //allows for spliting a large Raw-food bundle up for carrying. Used in pick_food()
             let f = Things {
                 alligence: 0,
-                otype: 'f',
+                otype: ThingType::Food,
                 dead: true,
                 hp: 0.,
                 age: 0,
@@ -280,7 +312,7 @@ impl Things {
                 stamina: 0.,
                 pher_f: 0.,
                 pher_d: 0.,
-                pher: 0.,
+                pher_t: 0.,
                 pher_h: 0.,
                 detect: 0.,
             };
@@ -308,7 +340,7 @@ impl Things {
     fn new_pher(&self) -> Vec<Things>{ //generates a new set of pheremones based on an ant or food piece;
         let mut new_h = Things{
             alligence: 0,
-            otype: 'p',
+            otype: ThingType::Scent,
             dead: false,
             hp: 0.,
             age: 0,
@@ -322,13 +354,13 @@ impl Things {
             stamina: 0.,
             pher_f: 0.,
             pher_d: 0.,
-            pher: 0.,
+            pher_t: 0.,
             pos: vec2(rand::gen_range(0., self.pher_h) + self.pos.x, rand::gen_range(0., self.pher_h) + self.pos.y),
             pher_h: self.pher_h,
         };
         let mut new_f = Things{
             alligence: 0,
-            otype: 'p',
+            otype: ThingType::Scent,
             dead: false,
             hp: 0.,
             age: 0,
@@ -342,13 +374,13 @@ impl Things {
             stamina: 0.,
             pher_h: 0.,
             pher_d: 0.,
-            pher: 0.,
+            pher_t: 0.,
             pos: vec2(rand::gen_range(0., self.pher_f) + self.pos.x, rand::gen_range(0., self.pher_f) + self.pos.y),
             pher_f: self.pher_f,
         };
         let mut new_d = Things{
             alligence: 0,
-            otype: 'p',
+            otype: ThingType::Scent,
             dead: false,
             hp: 0.,
             age: 0,
@@ -362,13 +394,13 @@ impl Things {
             stamina: 0.,
             pher_f: 0.,
             pher_h: 0.,
-            pher: 0.,
+            pher_t: 0.,
             pos: vec2(rand::gen_range(0., self.pher_d) + self.pos.x, rand::gen_range(0., self.pher_d) + self.pos.y),
             pher_d: self.pher_d,
         };
         let mut new_t = Things{
             alligence: 0,
-            otype: 'p',
+            otype: ThingType::Scent,
             dead: false,
             hp: 0.,
             age: 0,
@@ -383,17 +415,18 @@ impl Things {
             pher_f: 0.,
             pher_d: 0.,
             pher_h: 0.,
-            pos: vec2(rand::gen_range(0., self.pher) + self.pos.x, rand::gen_range(0., self.pher) + self.pos.y),
-            pher: self.pher,
+            pos: vec2(rand::gen_range(0., self.pher_t) + self.pos.x, rand::gen_range(0., self.pher_t) + self.pos.y),
+            pher_t: self.pher_t,
         };
         let mut output = vec![new_d, new_f, new_h, new_t];
         output
     }
-    pub fn pher_sorter<'a>(scents: Vec<Things>, foodp: &'a str, dangerp: &'a str, thome: &'a str, homep: &'a str) -> HashMap<&'a str, Vec<Things>> {
+    pub fn pher_sorter<'a>(scents: Vec<Things>) -> Vec<Vec<Things>> {
         let mut pher_h = Vec::new();
         let mut pher_f = Vec::new();
-        let mut pher = Vec::new();
+        let mut pher_t = Vec::new();
         let mut pher_d = Vec::new();
+
         for i in scents {
             if i.pher_d > 0.02 {
                 pher_d.push(i.clone())
@@ -404,14 +437,11 @@ impl Things {
             if i.pher_h > 0.02 {
                 pher_h.push(i.clone())
             }
-            if i.pher > 0.02 {
-                pher.push(i.clone())
+            if i.pher_t > 0.02 {
+                pher_t.push(i.clone())
             }
         }
-        let mut output:HashMap<&str, Vec<Things>> = [(foodp,pher_f), (dangerp,pher_d), (thome,pher), (homep,pher_h)]
-        .iter()
-        .cloned()
-        .collect();
+        let mut output:Vec<Vec<Things>> = vec![pher_f,pher_d,pher_t,pher_h];
         output
     }
     pub fn disperse(mut all_scents: Vec<Things>) -> Vec<Things> { //disperses the pheremones given. 
@@ -421,7 +451,7 @@ impl Things {
             
             all_scents[i].pher_d *= 0.67;
             all_scents[i].pher_f *= 0.67;
-            all_scents[i].pher *= 0.67;
+            all_scents[i].pher_t *= 0.67;
             all_scents[i].pher_h *= 0.67;
             
             all_scents[i].pos + random;
@@ -429,7 +459,7 @@ impl Things {
             
         }
 
-        new_phers.retain(|i| i.pher_h < 0.02 && i.pher < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
+        new_phers.retain(|i| i.pher_h < 0.02 && i.pher_t < 0.02 && i.pher_d < 0.02 && i.pher_f < 0.02);
         Self::combine_phers(&mut new_phers);
         
         new_phers
@@ -448,7 +478,7 @@ impl Things {
             let mut group_pher_d = new_phers[i].pher_d;
             let mut group_pher_f = new_phers[i].pher_f;
             let mut group_pher_h = new_phers[i].pher_h;
-            let mut group_pher = new_phers[i].pher;
+            let mut group_pher_t = new_phers[i].pher_t;
 
             for (j, food2) in new_phers.iter().enumerate() {
                 if i == j || grouped_indices.contains(&j) {
@@ -461,13 +491,13 @@ impl Things {
                     group_pher_d += food2.pher_d;
                     group_pher_h += food2.pher_h;
                     group_pher_f += food2.pher_f;
-                    group_pher += food2.pher;
+                    group_pher_t += food2.pher_t;
                 }
             }
 
             // Update value of combined phers
             if grouped_indices.len() > 0 {
-                new_phers[i].pher = group_pher;
+                new_phers[i].pher_t = group_pher_t;
                 new_phers[i].pher_h = group_pher_h;
                 new_phers[i].pher_f = group_pher_f;
                 new_phers[i].pher_d = group_pher_d;
@@ -488,7 +518,7 @@ impl Things {
     fn new_scout(&self) -> Things {
         let mut s: Things = Things {
             alligence: 0,
-            otype: 's',
+            otype: ThingType::Scout,
             dead: false,
             hp: 10.,
             age: 0,
@@ -502,7 +532,7 @@ impl Things {
             stamina: 50.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher: 10.,
+            pher_t: 10.,
             pher_h: 0.,
             detect: 20.,
             
@@ -515,7 +545,7 @@ impl Things {
     fn new_soldier(&self) -> Things {
         let mut a: Things = Things {
             alligence: 0,
-            otype: 'k',
+            otype: ThingType::Soldier,
             dead: false,
             hp: 20.,
             age: 0,
@@ -529,7 +559,7 @@ impl Things {
             stamina: 50.,
             detect: 4.,
             pher_f: 0.,
-            pher: 10.,
+            pher_t: 10.,
             pher_h: 0.,
             pher_d: self.pher_d,
             
@@ -542,7 +572,7 @@ impl Things {
     fn new_defender(&self) -> Things {
         let mut d: Things = Things {
             alligence: 0,
-            otype: 'd',
+            otype: ThingType::Defender,
             dead: false,
             hp: 50.,
             age: 0,
@@ -556,7 +586,7 @@ impl Things {
             stamina: 30.,
             pher_f: 0.,
             pher_d: self.pher_d,
-            pher: 10.,
+            pher_t: 10.,
             pher_h: 0.,
             detect: 3.,
             
@@ -576,13 +606,13 @@ impl Things {
         let mut scent:Vec<Things> = Vec::new();
         for mut i in chaos{
             match i.otype {
-                'q' => queen.push(i),
-                'w' => worker.push(i),
-                'k' => soldier.push(i),
-                'd' => defender.push(i),
-                's' => scout.push(i),
-                'f' => food.push(i),
-                'p' => scent.push(i),
+                ThingType::Queen => queen.push(i),
+                ThingType::Worker => worker.push(i),
+                ThingType::Soldier => soldier.push(i),
+                ThingType::Defender => defender.push(i),
+                ThingType::Scout => scout.push(i),
+                ThingType::Food => food.push(i),
+                ThingType::Scent => scent.push(i),
                 _ => println!("faliure in the sorter fn"),
             }
         }
@@ -590,14 +620,14 @@ impl Things {
     }
     pub fn color_shaper(&self) {
         match self.otype {
-            'w'=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
-            'q'=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
-            'k'=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
-            'd'=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
-            's'=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
-            'f'=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
-            'p'=> if self.pher > 0. {
-                draw_circle(self.pos.x, self.pos.y, self.pher, GRAY);
+            ThingType::Worker=> draw_circle(self.pos.x, self.pos.y, self.mass, DARKBLUE),
+            ThingType::Queen=> draw_circle(self.pos.x, self.pos.y, self.mass, GOLD),
+            ThingType::Soldier=> draw_circle(self.pos.x, self.pos.y, self.mass, RED),
+            ThingType::Defender=> draw_circle(self.pos.x, self.pos.y, self.mass, YELLOW),
+            ThingType::Scout=> draw_circle(self.pos.x, self.pos.y, self.mass, SKYBLUE),
+            ThingType::Food=> draw_circle(self.pos.x, self.pos.y, self.mass, ORANGE),
+            ThingType::Scent=> if self.pher_t > 0. {
+                draw_circle(self.pos.x, self.pos.y, self.pher_t, GRAY);
             } else if self.pher_h > 0. {
                 draw_circle(self.pos.x, self.pos.y, self.pher_h, LIME);
             } else if self.pher_f > 0. {
@@ -658,19 +688,13 @@ impl Things {
             }}
         }
     }
-    pub fn in_detect_range_check(&self, check_pos: Vec2) -> bool {
-        /*
-        first checks if object is in circular detection range
-        second find the absolute equation of the circle with a radius of ant detection, with Vec2<0,0> being origin.
-        math to find equation describing all points that reside in the circle
-        true, false
-        done
-         */
-        let xdis = self.pos.x - check_pos.x;
-        let ydis = self.pos.y - check_pos.y;
-        if (xdis*xdis + ydis*ydis).sqrt() > self.detect { return false }
+    pub fn in_detect_range_check(&self, check_pos: Things) -> bool {
+        // first checks if object is in circular detection range
+        let (_x,_y,r,direction) = self.trig_calculator(check_pos);
+        if r > self.detect { return false }
 
-        let degree = modulo(Self::degree_finder(xdis, ydis), 360.) - self.orientation();
+        // second, find if the object is in the correct scope of vision
+        let degree = modulo(direction.unwrap(), 360.) - self.orientation();
         if degree.abs() >= 45. { return false }
         true
     
@@ -712,122 +736,112 @@ impl Things {
 
 impl Things {
     // Moving functions
-    fn trig_calculator(&self, i: Things) -> (f32,f32,f32,f32) {
+    fn trig_calculator(&self, i: Things) -> (f32,f32,f32,TurnDirection) {
         let x = self.pos.x - i.pos.x;
         let y = self.pos.y - i.pos.y;
         let r = (x*x + y*y).sqrt();
         let theta = Self::degree_finder(x, y);
-        (x,y,r,theta)
+        let direction = match theta as u32 {
+            44..=62 => TurnDirection::far_left(theta),
+            63..=80 => TurnDirection::Left(theta),
+            81..=98 => TurnDirection::Straight(theta),
+            99..=116 => TurnDirection::Right(theta),
+            117..=135 => TurnDirection::far_right(theta),
+            _=> {
+                dbg!("Error with trig_calculation. Invalid direction angle");
+                TurnDirection::Straight(0.0)
+            }
+        };
+        (x,y,r,direction)
     }
 
-    fn food_direction_convert(&self, temp_holder: Vec<Things>, amountFood: i32) -> Vec<(char, f32)> {
-        let mut output: Vec<(char, f32)> = Vec::new();
+    fn food_direction_convert(&self, temp_holder: Vec<Things>, amount_food: i32) -> Vec<(TurnDirection, f32)> {
+        let mut output: Vec<(TurnDirection, f32)> = Vec::new();
         let mut q = 0;
         for i in temp_holder {
-            let (_x,_y,r,theta) = self.trig_calculator(i);
+            let (_x,_y,r,direction) = self.trig_calculator(i);
             // let (u,r,s,l,b,w) = (45.0,63.0,81.0,99.0,117.0,135.0);
             let weight = 1./r;
-            let mut direction: char = 's';
-            match theta { // u=far right, r=right, s=straight, l=left, b=far left
-                45.0..=63. => direction = 'u',
-                63.0..=81. => direction = 'r',
-                81.0..=99.0 => direction = 's',
-                99.0..=117.0 => direction = 'l',
-                117.0..=135.0 => direction = 'b',
-                _=> println!("Error with direction fn for food"),
-            }
-            if q < amountFood { let weight = weight * 4.; }
+            if q < amount_food { let weight = weight * 4.; }
             output.push((direction, weight));
             q+=1;
         }
         output
     }
     pub fn move_to_food(&mut self, Raw_food: Vec<Things>, Pher_f: Vec<Things>) {
-        let mut tempFoodHolder = Vec::new();
-        let mut foodCount = 0;
+        let mut temp_food_holder = Vec::new();
+        let mut food_count = 0;
         
         for i in Raw_food {
-            if Self::in_detect_range_check(&self, i.pos) {
-                tempFoodHolder.push(i.clone());
-                foodCount = foodCount + 1;
+            if Self::in_detect_range_check(&self, i) {
+                temp_food_holder.push(i.clone());
+                food_count = food_count + 1;
             }
         }
 
         for i in Pher_f {
-            if Self::in_detect_range_check(&self, i.pos) {
-                tempFoodHolder.push(i.clone());
+            if Self::in_detect_range_check(&self, i) {
+                temp_food_holder.push(i.clone());
             }
         }
 
-        let new_vec: Vec<(char, f32)> = Self::food_direction_convert(&self, tempFoodHolder, foodCount);
+        let new_vec: Vec<(TurnDirection, f32)> = Self::food_direction_convert(&self, temp_food_holder, food_count);
         
         let (
-                mut amountFarLeft, 
-                mut amountLeft, 
-                mut amountStraight, 
-                mut amountRight, 
-                mut amountFarRight
-            ) = 
-                (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+                mut amount_far_left, 
+                mut amount_left, 
+                mut amount_straight, 
+                mut amount_right, 
+                mut amount_far_right
+            ) = (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
 
         for &(direction, value) in &new_vec {
             match direction {
-                'b' => amountFarLeft.push((direction, value)),
-                'l' => amountLeft.push((direction, value)),
-                's' => amountStraight.push((direction, value)),
-                'r' => amountRight.push((direction, value)),
-                'u' => amountFarRight.push((direction, value)),
-                _ => println!("error when sorting the directions of food travel")
+                TurnDirection::far_left(_i) => amount_far_left.push((direction, value)),
+                TurnDirection::Left(_i) => amount_left.push((direction, value)),
+                TurnDirection::Straight(_i) => amount_straight.push((direction, value)),
+                TurnDirection::Right(_i) => amount_right.push((direction, value)),
+                TurnDirection::far_right(_i) => amount_far_right.push((direction, value)),
             }
         }
 
-        let (mut numberFarLeft, mut numberLeft, mut numberStraight, mut numberRight, mut numberFarRight) = (0.,0.,0.,0.,0.,);
+        let (mut number_far_left, mut number_left, mut number_straight, mut number_right, mut number_far_right) = (0.,0.,0.,0.,0.,);
 
-        amountFarLeft.iter().for_each(|x| numberFarLeft += x.1);
-        amountLeft.iter().for_each(|x| numberLeft += x.1);
-        amountStraight.iter().for_each(|x| numberStraight += x.1);
-        amountRight.iter().for_each(|x| numberRight += x.1);
-        amountFarRight.iter().for_each(|x| numberFarRight += x.1);
+        amount_far_left.iter().for_each(|(_x,y)| number_far_left += y);
+        amount_left.iter().for_each(|(_x,y)| number_left += y);
+        amount_straight.iter().for_each(|(_x,y)| number_straight += y);
+        amount_right.iter().for_each(|(_x,y)| number_right += y);
+        amount_far_right.iter().for_each(|(_x,y)| number_far_right += y);
 
-        numberFarLeft += rand::gen_range(0., 10.);
-        numberFarRight += rand::gen_range(0., 10.);
-        numberLeft += rand::gen_range(0., 10.);
-        numberRight += rand::gen_range(0., 10.);
-        numberStraight += rand::gen_range(0., 10.);
+        number_far_left += rand::gen_range(0., 10.);
+        number_far_right += rand::gen_range(0., 10.);
+        number_left += rand::gen_range(0., 10.);
+        number_right += rand::gen_range(0., 10.);
+        number_straight += rand::gen_range(0., 10.);
 
-        let (farLeft, left, straight, right, farRight) = (
-            numberFarLeft/amountFarLeft.len() as f32,
-            numberLeft/amountLeft.len() as f32,
-            numberStraight/amountStraight.len() as f32,
-            numberRight/amountRight.len() as f32,
-            numberFarRight/amountFarRight.len() as f32,
+        let (far_left, left, straight, right, far_right) = (
+            number_far_left/amount_far_left.len() as f32,
+            number_left/amount_left.len() as f32,
+            number_straight/amount_straight.len() as f32,
+            number_right/amount_right.len() as f32,
+            number_far_right/amount_far_right.len() as f32,
         );
 
-        let best = farLeft.max(farRight).max(left).max(right).max(straight);
-        match best {
+        let winner = far_left.max(far_right).max(left).max(right).max(straight);
+        match winner {
             straight => self.pos += self.vel,
-            farRight => {self.turn_right(true)},
-            farLeft => {self.turn_left(true)},
+            far_right => {self.turn_right(true)},
+            far_left => {self.turn_left(true)},
             right => {self.turn_right(false)},
             left => {self.turn_left(false)},
-
-            _=> println!("error at the turning end lol")
         }
     }
-    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(char, f32)>{
-        let mut output: Vec<(char, f32)> = Vec::new();
+    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(TurnDirection, f32)>{
+        let mut output: Vec<(TurnDirection, f32)> = Vec::new();
         for i in temp_holder {
-            let (_x,_y,r,theta) = self.trig_calculator(i);
+            let (_x,_y,r,direction) = self.trig_calculator(i);
             let weight = 1./r;
-            let mut direction: char = 's';
-            match theta { // u=far right, r=right, s=straight, l=left, b=far left
-                45.0..=63. => direction = 'u',
-                63.0..=81. => direction = 'r',
-                81.0..=99.0 => direction = 's',
-                99.0..=117.0 => direction = 'l',
-                117.0..=135.0 => direction = 'b',
-                _=> println!("Error with direction fn for food"),
-            }
+
             output.push((direction, weight));
         }
         output
@@ -835,53 +849,53 @@ impl Things {
     pub fn move_to_home(&mut self, pher: Vec<Things>) {
         let mut temp_holder = Vec::new(); 
         for i in pher {
-            if Self::in_detect_range_check(&self, i.pos) {
+            if Self::in_detect_range_check(&self, i) {
                 temp_holder.push(i.clone());
             }
         }
 
-        let new_vec: Vec<(char, f32)> = self.pher_direction_convert(temp_holder);
+        let new_vec: Vec<(TurnDirection, f32)> = self.pher_direction_convert(temp_holder);
         
         let (
-                mut amountFarLeft, 
-                mut amountLeft, 
-                mut amountStraight, 
-                mut amountRight, 
-                mut amountFarRight
+                mut amount_far_left, 
+                mut amount_left, 
+                mut amount_straight, 
+                mut amount_right, 
+                mut amount_far_right
             ) = 
                 (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
 
         for &(direction, value) in &new_vec {
             match direction {
-                'b' => amountFarLeft.push((direction, value)),
-                'l' => amountLeft.push((direction, value)),
-                's' => amountStraight.push((direction, value)),
-                'r' => amountRight.push((direction, value)),
-                'u' => amountFarRight.push((direction, value)),
+                TurnDirection::far_left(_i) => amount_far_left.push((direction, value)),
+                TurnDirection::Left(_i) => amount_left.push((direction, value)),
+                TurnDirection::Straight(_i) => amount_straight.push((direction, value)),
+                TurnDirection::Right(_i) => amount_right.push((direction, value)),
+                TurnDirection::far_right(_i) => amount_far_right.push((direction, value)),
                 _ => println!("error when sorting the directions of food travel")
             }
         }
 
-        let (mut numberFarLeft, mut numberLeft, mut numberStraight, mut numberRight, mut numberFarRight) = (0.,0.,0.,0.,0.,);
+        let (mut number_far_left, mut number_left, mut number_straight, mut number_right, mut number_far_right) = (0.,0.,0.,0.,0.,);
 
-        amountFarLeft.iter().for_each(|x| numberFarLeft += x.1);
-        amountLeft.iter().for_each(|x| numberLeft += x.1);
-        amountStraight.iter().for_each(|x| numberStraight += x.1);
-        amountRight.iter().for_each(|x| numberRight += x.1);
-        amountFarRight.iter().for_each(|x| numberFarRight += x.1);
+        amount_far_left.iter().for_each(|x| number_far_left += x.1);
+        amount_left.iter().for_each(|x| number_left += x.1);
+        amount_straight.iter().for_each(|x| number_straight += x.1);
+        amount_right.iter().for_each(|x| number_right += x.1);
+        amount_far_right.iter().for_each(|x| number_far_right += x.1);
 
-        numberFarLeft += rand::gen_range(0., 10.);
-        numberFarRight += rand::gen_range(0., 10.);
-        numberLeft += rand::gen_range(0., 10.);
-        numberRight += rand::gen_range(0., 10.);
-        numberStraight += rand::gen_range(0., 10.);
+        number_far_left += rand::gen_range(0., 10.);
+        number_far_right += rand::gen_range(0., 10.);
+        number_left += rand::gen_range(0., 10.);
+        number_right += rand::gen_range(0., 10.);
+        number_straight += rand::gen_range(0., 10.);
 
         let (far_left, left, straight, right, far_right) = (
-            numberFarLeft/amountFarLeft.len() as f32,
-            numberLeft/amountLeft.len() as f32,
-            numberStraight/amountStraight.len() as f32,
-            numberRight/amountRight.len() as f32,
-            numberFarRight/amountFarRight.len() as f32,
+            number_far_left/amount_far_left.len() as f32,
+            number_left/amount_left.len() as f32,
+            number_straight/amount_straight.len() as f32,
+            number_right/amount_right.len() as f32,
+            number_far_right/amount_far_right.len() as f32,
         );
 
         let best = far_left.max(far_right).max(left).max(right).max(straight);
