@@ -69,24 +69,61 @@ pher_h: f32,
 */
 #[derive(Copy)]
 #[derive(Clone)]
-enum TurnDirection {
-    far_left(f32),
-    far_right(f32),
+enum Direction {
+    FarLeft(f32),
+    FarRight(f32),
     Left(f32),
     Right(f32),
     Straight(f32),
 }
-impl TurnDirection {
+impl Direction {
     fn unwrap(self) -> f32 {
         match self {
-            Self::far_left(i) => i,
-            Self::far_right(i) => i,
+            Self::FarLeft(i) => i,
+            Self::FarRight(i) => i,
             Self::Straight(i) => i,
             Self::Left(i) => i,
             Self::Right(i) => i,
         }
     }
+    fn add(&self, add: f32) {
+        match self {
+            Self::FarLeft(i) => i+add,
+            Self::FarRight(i) => i+add,
+            Self::Left(i) => i+add,
+            Self::Right(i) => i+add,
+            Self::Straight(i) => i+add,
+        };
+    }
+    fn sub(&self, sub:f32) {
+        match self {
+            Self::FarLeft(i) => sub-i,
+            Self::FarRight(i) => sub-i,
+            Self::Left(i) => sub-i,
+            Self::Right(i) => sub-i,
+            Self::Straight(i) => sub-i,
+        };
+    }
+    fn div(&self, div:f32) {
+        match self {
+            Self::FarLeft(i) => div/i,
+            Self::FarRight(i) => div/i,
+            Self::Left(i) => div/i,
+            Self::Right(i) => div/i,
+            Self::Straight(i) => div/i,
+        };
+    }
+    fn mul(&self, mul: f32) {
+        match self {
+            Self::FarLeft(i) => i*mul,
+            Self::FarRight(i) => i*mul,
+            Self::Left(i) => i*mul,
+            Self::Right(i) => i*mul,
+            Self::Straight(i) => i*mul,
+        };
+    }
 }
+
 #[derive(Copy)]
 #[derive(Clone)]
 enum ThingType {
@@ -736,27 +773,27 @@ impl Things {
 
 impl Things {
     // Moving functions
-    fn trig_calculator(&self, i: Things) -> (f32,f32,f32,TurnDirection) {
+    fn trig_calculator(&self, i: Things) -> (f32,f32,f32,Direction) {
         let x = self.pos.x - i.pos.x;
         let y = self.pos.y - i.pos.y;
         let r = (x*x + y*y).sqrt();
         let theta = Self::degree_finder(x, y);
         let direction = match theta as u32 {
-            44..=62 => TurnDirection::far_left(theta),
-            63..=80 => TurnDirection::Left(theta),
-            81..=98 => TurnDirection::Straight(theta),
-            99..=116 => TurnDirection::Right(theta),
-            117..=135 => TurnDirection::far_right(theta),
+            44..=62 => Direction::FarLeft(theta),
+            63..=80 => Direction::Left(theta),
+            81..=98 => Direction::Straight(theta),
+            99..=116 => Direction::Right(theta),
+            117..=135 => Direction::FarRight(theta),
             _=> {
                 dbg!("Error with trig_calculation. Invalid direction angle");
-                TurnDirection::Straight(0.0)
+                Direction::Straight(0.0)
             }
         };
         (x,y,r,direction)
     }
 
-    fn food_direction_convert(&self, temp_holder: Vec<Things>, amount_food: i32) -> Vec<(TurnDirection, f32)> {
-        let mut output: Vec<(TurnDirection, f32)> = Vec::new();
+    fn food_direction_convert(&self, temp_holder: Vec<Things>, amount_food: i32) -> Vec<(Direction, f32)> {
+        let mut output: Vec<(Direction, f32)> = Vec::new();
         let mut q = 0;
         for i in temp_holder {
             let (_x,_y,r,direction) = self.trig_calculator(i);
@@ -785,7 +822,7 @@ impl Things {
             }
         }
 
-        let new_vec: Vec<(TurnDirection, f32)> = Self::food_direction_convert(&self, temp_food_holder, food_count);
+        let new_vec: Vec<(Direction, f32)> = Self::food_direction_convert(&self, temp_food_holder, food_count);
         
         let (
                 mut amount_far_left, 
@@ -797,47 +834,66 @@ impl Things {
 
         for &(direction, value) in &new_vec {
             match direction {
-                TurnDirection::far_left(_i) => amount_far_left.push((direction, value)),
-                TurnDirection::Left(_i) => amount_left.push((direction, value)),
-                TurnDirection::Straight(_i) => amount_straight.push((direction, value)),
-                TurnDirection::Right(_i) => amount_right.push((direction, value)),
-                TurnDirection::far_right(_i) => amount_far_right.push((direction, value)),
+                Direction::FarLeft(_i) => amount_far_left.push((direction, value)),
+                Direction::Left(_i) => amount_left.push((direction, value)),
+                Direction::Straight(_i) => amount_straight.push((direction, value)),
+                Direction::Right(_i) => amount_right.push((direction, value)),
+                Direction::FarRight(_i) => amount_far_right.push((direction, value)),
             }
         }
 
-        let (mut number_far_left, mut number_left, mut number_straight, mut number_right, mut number_far_right) = (0.,0.,0.,0.,0.,);
+        let (
+            mut number_far_left, 
+            mut number_left, 
+            mut number_straight, 
+            mut number_right, 
+            mut number_far_right) = (
+                Direction::FarLeft(0.),
+                Direction::Left(0.),
+                Direction::Straight(0.),
+                Direction::Right(0.),
+                Direction::FarLeft(0.)
+            );
 
-        amount_far_left.iter().for_each(|(_x,y)| number_far_left += y);
-        amount_left.iter().for_each(|(_x,y)| number_left += y);
-        amount_straight.iter().for_each(|(_x,y)| number_straight += y);
-        amount_right.iter().for_each(|(_x,y)| number_right += y);
-        amount_far_right.iter().for_each(|(_x,y)| number_far_right += y);
+        amount_far_left.iter().for_each(|(_x,y)| number_far_left.add(*y));
+        amount_left.iter().for_each(|(_x,y)| number_left.add(*y));
+        amount_straight.iter().for_each(|(_x,y)| number_straight.add(*y));
+        amount_right.iter().for_each(|(_x,y)| number_right.add(*y));
+        amount_far_right.iter().for_each(|(_x,y)| number_far_right.add(*y));
 
-        number_far_left += rand::gen_range(0., 10.);
-        number_far_right += rand::gen_range(0., 10.);
-        number_left += rand::gen_range(0., 10.);
-        number_right += rand::gen_range(0., 10.);
-        number_straight += rand::gen_range(0., 10.);
+        number_far_left.add(rand::gen_range(0., 10.));
+        number_far_right.add(rand::gen_range(0., 10.));
+        number_left.add(rand::gen_range(0., 10.));
+        number_right.add(rand::gen_range(0., 10.));
+        number_straight.add(rand::gen_range(0., 10.));
 
-        let (far_left, left, straight, right, far_right) = (
-            number_far_left/amount_far_left.len() as f32,
-            number_left/amount_left.len() as f32,
-            number_straight/amount_straight.len() as f32,
-            number_right/amount_right.len() as f32,
-            number_far_right/amount_far_right.len() as f32,
-        );
-
-        let winner = far_left.max(far_right).max(left).max(right).max(straight);
-        match winner {
-            straight => self.pos += self.vel,
-            far_right => {self.turn_right(true)},
-            far_left => {self.turn_left(true)},
-            right => {self.turn_right(false)},
-            left => {self.turn_left(false)},
+        let range = vec![
+            (Direction::FarLeft(0.),number_far_left.unwrap()/amount_far_left.len() as f32),
+            (Direction::Left(0.),number_left.unwrap()/amount_left.len() as f32),
+            (Direction::Straight(0.),number_straight.unwrap()/amount_straight.len() as f32),
+            (Direction::Right(0.),number_right.unwrap()/amount_right.len() as f32),
+            (Direction::FarRight(0.),number_far_right.unwrap()/amount_far_right.len() as f32),
+        ];
+        let mut highest = 0.;
+        let mut best = Direction::Straight(0.);
+        for (direct, i) in range {
+            if i > highest {
+                highest = i;
+                best = direct;
+            }
         }
+        
+        match best {
+            Direction::Straight(_i) => self.pos += self.vel,
+            Direction::FarRight(_i) => {self.turn_right(true)},
+            Direction::FarLeft(_i) => {self.turn_left(true)},
+            Direction::Right(_i) => {self.turn_right(false)},
+            Direction::Left(_i) => {self.turn_left(false)},
+        }
+
     }
-    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(TurnDirection, f32)>{
-        let mut output: Vec<(TurnDirection, f32)> = Vec::new();
+    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(Direction, f32)>{
+        let mut output: Vec<(Direction, f32)> = Vec::new();
         for i in temp_holder {
             let (_x,_y,r,direction) = self.trig_calculator(i);
             let weight = 1./r;
@@ -846,68 +902,83 @@ impl Things {
         }
         output
     }
-    pub fn move_to_home(&mut self, pher: Vec<Things>) {
-        let mut temp_holder = Vec::new(); 
+    pub fn move_to_pher(&mut self, pher: Vec<Things>) {
+        let mut temp_food_holder = Vec::new();
+
         for i in pher {
             if Self::in_detect_range_check(&self, i) {
-                temp_holder.push(i.clone());
+                temp_food_holder.push(i.clone());
             }
         }
 
-        let new_vec: Vec<(TurnDirection, f32)> = self.pher_direction_convert(temp_holder);
+        let new_vec: Vec<(Direction, f32)> = Self::pher_direction_convert(&self, temp_food_holder);
         
-        let (
-                mut amount_far_left, 
+        let (   mut amount_far_left, 
                 mut amount_left, 
                 mut amount_straight, 
                 mut amount_right, 
                 mut amount_far_right
-            ) = 
-                (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
+            ) = (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
 
         for &(direction, value) in &new_vec {
             match direction {
-                TurnDirection::far_left(_i) => amount_far_left.push((direction, value)),
-                TurnDirection::Left(_i) => amount_left.push((direction, value)),
-                TurnDirection::Straight(_i) => amount_straight.push((direction, value)),
-                TurnDirection::Right(_i) => amount_right.push((direction, value)),
-                TurnDirection::far_right(_i) => amount_far_right.push((direction, value)),
-                _ => println!("error when sorting the directions of food travel")
+                Direction::FarLeft(_i) => amount_far_left.push((direction, value)),
+                Direction::Left(_i) => amount_left.push((direction, value)),
+                Direction::Straight(_i) => amount_straight.push((direction, value)),
+                Direction::Right(_i) => amount_right.push((direction, value)),
+                Direction::FarRight(_i) => amount_far_right.push((direction, value)),
             }
         }
 
-        let (mut number_far_left, mut number_left, mut number_straight, mut number_right, mut number_far_right) = (0.,0.,0.,0.,0.,);
+        let (
+            mut number_far_left, 
+            mut number_left, 
+            mut number_straight, 
+            mut number_right, 
+            mut number_far_right) = (
+                Direction::FarLeft(0.),
+                Direction::Left(0.),
+                Direction::Straight(0.),
+                Direction::Right(0.),
+                Direction::FarLeft(0.)
+            );
 
-        amount_far_left.iter().for_each(|x| number_far_left += x.1);
-        amount_left.iter().for_each(|x| number_left += x.1);
-        amount_straight.iter().for_each(|x| number_straight += x.1);
-        amount_right.iter().for_each(|x| number_right += x.1);
-        amount_far_right.iter().for_each(|x| number_far_right += x.1);
+        amount_far_left.iter().for_each(|(_x,y)| number_far_left.add(*y));
+        amount_left.iter().for_each(|(_x,y)| number_left.add(*y));
+        amount_straight.iter().for_each(|(_x,y)| number_straight.add(*y));
+        amount_right.iter().for_each(|(_x,y)| number_right.add(*y));
+        amount_far_right.iter().for_each(|(_x,y)| number_far_right.add(*y));
 
-        number_far_left += rand::gen_range(0., 10.);
-        number_far_right += rand::gen_range(0., 10.);
-        number_left += rand::gen_range(0., 10.);
-        number_right += rand::gen_range(0., 10.);
-        number_straight += rand::gen_range(0., 10.);
+        number_far_left.add(rand::gen_range(0., 10.));
+        number_far_right.add(rand::gen_range(0., 10.));
+        number_left.add(rand::gen_range(0., 10.));
+        number_right.add(rand::gen_range(0., 10.));
+        number_straight.add(rand::gen_range(0., 10.));
 
-        let (far_left, left, straight, right, far_right) = (
-            number_far_left/amount_far_left.len() as f32,
-            number_left/amount_left.len() as f32,
-            number_straight/amount_straight.len() as f32,
-            number_right/amount_right.len() as f32,
-            number_far_right/amount_far_right.len() as f32,
-        );
-
-        let best = far_left.max(far_right).max(left).max(right).max(straight);
-        match best {
-            straight => self.pos += self.vel,
-            far_right => {self.turn_right(true)},
-            far_left => {self.turn_left(true)},
-            right => {self.turn_right(false)},
-            left => {self.turn_left(false)},
-
-            _=> println!("error at the turning end lol")
+        let range = vec![
+            (Direction::FarLeft(0.),number_far_left.unwrap()/amount_far_left.len() as f32),
+            (Direction::Left(0.),number_left.unwrap()/amount_left.len() as f32),
+            (Direction::Straight(0.),number_straight.unwrap()/amount_straight.len() as f32),
+            (Direction::Right(0.),number_right.unwrap()/amount_right.len() as f32),
+            (Direction::FarRight(0.),number_far_right.unwrap()/amount_far_right.len() as f32),
+        ];
+        let mut highest = 0.;
+        let mut best = Direction::Straight(0.);
+        for (direct, i) in range {
+            if i > highest {
+                highest = i;
+                best = direct;
+            }
         }
+        
+        match best {
+            Direction::Straight(_i) => self.pos += self.vel,
+            Direction::FarRight(_i) => {self.turn_right(true)},
+            Direction::FarLeft(_i) => {self.turn_left(true)},
+            Direction::Right(_i) => {self.turn_right(false)},
+            Direction::Left(_i) => {self.turn_left(false)},
+        }
+
     }    
 
 
