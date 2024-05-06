@@ -1,4 +1,4 @@
-use crate::tings::Things;
+use crate::tings::*;
 use std::collections::HashMap;
 use macroquad::{prelude::*, miniquad::native::apple::frameworks::Object};
 
@@ -59,11 +59,20 @@ impl Collection{
 
 
     { //dead clean up and convertion
-      let temp = &self.everything[0];
-      let deads:Vec<Things> = Vec::new();
-      for i in temp{
+      let mut deads:Vec<Things> = Vec::new();
+      for i in &self.everything[0] {
         for j in i {
+          let mut current = j;
+          if current.check_dead_mut() {
+            deads.push(*j);
+          }
+          
           // INCOMPLETE!!!! NEED TO FINISH MAKING THE DEAD CHECKER AND SETTER
+          /* 
+          For some reason cannot change the dead field of the Things without causing errors. Also will not allow the removal of a Thing from
+          the vec and transfer to another, and I cant figure out why. On top of that, im tired and frusterated with this stupid code, and chat
+          is the epitome of unhelpful to the point of absolute rage quitting.
+          */ 
         }
       }
 

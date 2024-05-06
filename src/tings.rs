@@ -764,10 +764,12 @@ impl Things {
     
     
     
-    pub fn check_dead_mut(&mut self) {
+    pub fn check_dead_mut(&mut self) -> bool{
         if self.age > 1000 || self.hp <= 0. {
             self.dead = true;
+            return true
         }
+        false
     }    
 }
 
@@ -892,9 +894,9 @@ impl Things {
         }
 
     }
-    fn pher_direction_convert(&self, temp_holder: Vec<Things>) -> Vec<(Direction, f32)>{
+    fn pher_direction_convert(&self, phers_x: Vec<Things>) -> Vec<(Direction, f32)>{
         let mut output: Vec<(Direction, f32)> = Vec::new();
-        for i in temp_holder {
+        for i in phers_x {
             let (_x,_y,r,direction) = self.trig_calculator(i);
             let weight = 1./r;
 
