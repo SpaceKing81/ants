@@ -62,8 +62,7 @@ impl Collection{
       let mut deads:Vec<Things> = Vec::new();
       for i in &self.everything[0] {
         for j in i {
-          let mut current = j;
-          if current.check_dead_mut() {
+          if j.check_dead_mut() {
             deads.push(*j);
           }
           

@@ -632,7 +632,7 @@ impl Things {
     }
 }
 impl Things {
-    // general fn, overlaping classes
+    // general fn
     pub fn sorter(chaos: Vec<Things>) -> (Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>,Vec<Things>) {
         let mut queen:Vec<Things> = Vec::new();
         let mut worker:Vec<Things> = Vec::new();
@@ -641,7 +641,7 @@ impl Things {
         let mut scout:Vec<Things> = Vec::new();
         let mut food :Vec<Things> = Vec::new();
         let mut scent:Vec<Things> = Vec::new();
-        for mut i in chaos{
+        for i in chaos{
             match i.otype {
                 ThingType::Queen => queen.push(i),
                 ThingType::Worker => worker.push(i),
@@ -764,7 +764,7 @@ impl Things {
     
     
     
-    pub fn check_dead_mut(&mut self) -> bool{
+    pub fn check_dead_mut(&mut self) -> bool {
         if self.age > 1000 || self.hp <= 0. {
             self.dead = true;
             return true
