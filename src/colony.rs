@@ -1,12 +1,21 @@
-use std::*;
 use macroquad::{
-  miniquad::{gl::PFNGLCOMPRESSEDTEXIMAGE1DPROC, native::apple::frameworks::Object},
   prelude::*, rand, math
 };
-
-
-struct Colony {
-  pos: Vec2,
+struct Queen { 
+  //basic spawner rn, not an ant
+  pos: IVec2,
   hp: u32,
   hunger: u32,
+  mass: u32,
+}
+impl Queen {
+  // spawning
+  fn new_queen(&mut self) {
+
+  }
+  fn new_ant(&mut self) {
+
+  }
+
+
 }

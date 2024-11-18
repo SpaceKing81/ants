@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
-mod colony;
+mod Colony;
+mod Ants;
 
 fn window_conf() -> Conf {
 
@@ -29,7 +30,6 @@ fn window_conf() -> Conf {
       // let mut mappy = Collection::new_collection(500);
       loop {
           // for mut i in 0..colonies.len() {
-          
           // // Draw the simulation
           clear_background(Color::new(0.,0.,0.1,1.0));
           // // ants.draw_ant();
