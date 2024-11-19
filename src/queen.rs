@@ -1,7 +1,9 @@
+// mod Ants;
 use macroquad::{
   prelude::*, rand, math
 };
-struct Queen { 
+
+pub struct Queen { 
   //basic spawner rn, not an ant
   pos: IVec2,
   hp: u32,

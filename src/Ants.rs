@@ -9,7 +9,7 @@ enum Caste {
   Def,
   Att,
 }
-struct Ant {
+pub struct Ant {
   caste: Caste,
   pos: IVec2,
   vel: IVec2,

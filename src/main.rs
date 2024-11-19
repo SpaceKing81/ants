@@ -1,6 +1,9 @@
 use macroquad::prelude::*;
-mod Colony;
-mod Ants;
+mod queen;
+mod ants;
+pub use crate::queen::Queen as Queen;
+pub use crate::ants::Ant as Ant;
+
 
 fn window_conf() -> Conf {
 
