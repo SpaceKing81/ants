@@ -1,7 +1,7 @@
-use macroquad::prelude::*;
-mod queen;
+mod colony;
 mod ants;
-pub use crate::queen::Queen as Queen;
+use macroquad::prelude::*;
+// pub use crate::colony:: as Colony;
 pub use crate::ants::Ant as Ant;
 
 
@@ -31,11 +31,19 @@ fn window_conf() -> Conf {
       //     colonies[i] = holder::Collection::new_collection(200)
       // }
       // let mut mappy = Collection::new_collection(500);
+    let test = Ant::initial_spawn(
+        750, 750, 500, 500
+    );
       loop {
           // for mut i in 0..colonies.len() {
           // // Draw the simulation
           clear_background(Color::new(0.,0.,0.1,1.0));
-          // // ants.draw_ant();
+          
+          test.0.draw_ant();
+          test.1.draw_ant();
+          test.2.draw_ant();
+          test.3.draw_ant();
+          test.4.draw_ant();
           // // pieces.draw_piece();
           // // ColonyImplimintation::draw_colony(&colony);
           // // draw_text(&format!("FPS: {}, ants: {}, Food: {}, SD: {}x{}, time: {}", get_fps(), ants.len(), pieces.len(), screen_width(), screen_height(), time),
