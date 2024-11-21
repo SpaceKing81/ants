@@ -38,9 +38,10 @@ impl Ant {
     };
     new
   }
-  pub fn initial_spawn(lowx:i32,x:i32,lowy:i32,y:i32) -> (Ant,Ant,Ant,Ant,Ant) {
+  pub fn initial_spawn(lowx:i32,x:i32,lowy:i32,y:i32) -> (Ant,Ant,Ant,Ant,Ant,Ant,Ant) {
     // random position
-    let pos = IVec2::new(rand::gen_range(lowx, x),rand::gen_range(lowy, y));
+    // let pos = IVec2::new(rand::gen_range(lowx, x),rand::gen_range(lowy, y));
+    let pos = IVec2::new(x, y); //temp
     // starter queen
     let mut start = Ant {
       caste: Caste::Que,
@@ -59,9 +60,11 @@ impl Ant {
     let mut ant2 = Self::new_ant(&mut start);
     let mut ant3 = Self::new_ant(&mut start);
     let mut ant4 = Self::new_ant(&mut start);
+    let mut ant5 = Self::new_ant(&mut start);
+    let mut ant6 = Self::new_ant(&mut start);
     
     
-    (start, ant1, ant2, ant3, ant4)
+    (start, ant1, ant2, ant3, ant4,ant5,ant6)
   }
 
   fn new_worker(&mut self) -> Ant {
@@ -159,16 +162,16 @@ impl Ant {
   }
 
   fn draw_worker(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, self.mass as f32, DARKBLUE);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/5., DARKBLUE);
   }
   fn draw_scout(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, self.mass as f32, SKYBLUE);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/4., SKYBLUE);
   }
   fn draw_defender(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, self.mass as f32, YELLOW);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/2., YELLOW);
   }
   fn draw_attacker(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, self.mass as f32, RED);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/2., RED);
   }
   fn draw_queen(&self) {
     draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/10., GOLD);
