@@ -182,7 +182,7 @@ impl Ant {
   // Quality of life
   fn rand_pos(&self) -> IVec2 {
     let pos = self.pos + IVec2::new(
-      rand::gen_range(-10, 10),rand::gen_range(-10, 10)
+      rand::gen_range(-20, 20),rand::gen_range(-20, 20)
     );
     pos
   }
