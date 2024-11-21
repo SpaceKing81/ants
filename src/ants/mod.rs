@@ -1,5 +1,11 @@
 use macroquad::{math, prelude::*, rand::{self, ChooseRandom}};
-use crate::{colony};
+// use crate::{colony};
+use crate::food::{Food};
+
+
+fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, {((a % b) + b) % b} // calculate modulus operations
+
+
 #[derive(Clone)]
 #[derive(Copy)]
 
@@ -13,15 +19,16 @@ enum Caste {
 }
 pub struct Ant {
   caste: Caste,
-  pos: IVec2,
+  pub pos: IVec2,
   vel: IVec2,
-  hp: u32,
+  hp: u16,
   age: u64,
-  mass: u32,
-  speed: u32,
-  att_str: u32,
-  armor: u32,
-  stamina: u64,
+  pub mass: u32,
+  speed: u8,
+  att_str: u8,
+  armor: u8,
+  pub str: u8,
+
 }
 // New Ants
 impl Ant {
@@ -52,7 +59,7 @@ impl Ant {
       speed: 1,
       att_str: 0,
       armor: 0,
-      stamina: 50,
+      str: 50,
       };
     // starter workers...probably 
     let mut ant1 = Self::new_ant(&mut start);
@@ -78,7 +85,7 @@ impl Ant {
       speed: 20,
       att_str: 5,
       armor: 7,
-      stamina: 200,
+      str: 200,
     };
     out
   }
@@ -94,7 +101,7 @@ impl Ant {
       speed: 30,
       att_str: 2,
       armor: 4,
-      stamina: 150,
+      str: 150,
     };
     out
   }
@@ -110,7 +117,7 @@ impl Ant {
       speed: 10,
       att_str: 5,
       armor: 20,
-      stamina: 150,
+      str: 150,
     };
     out
   }
@@ -126,7 +133,7 @@ impl Ant {
       speed: 25,
       att_str: 20,
       armor: 10,
-      stamina: 200,
+      str: 200,
     };
     out
   }
@@ -142,7 +149,7 @@ impl Ant {
       speed: 1,
       att_str: 0,
       armor: 0,
-      stamina: 50,
+      str: 50,
       };
     new
   }
@@ -226,21 +233,102 @@ impl Ant {
 }
 //Death and taxes
 impl Ant {
-  // pub fn death() -> Food {
-
+  pub fn death(self) -> Food {
+    //converts an ant into food
+    let (mass, pos) = (self.mass, self.pos);
+    let mut death_tax = Food {
+      mass,
+      pos,
+    };
+    death_tax
   }
-// }
 
+
+}
+//Movement
+impl Ant {
+  
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
+  }
+  pub fn in_detect_range_check(&self, check_pos: Ant) -> bool {
+    // first checks if object is in circular detection range
+    let (_x,_y,r,direction) = self.trig_calculator(check_pos);
+    if r > self.detect { return false }
+
+    // second, find if the object is in the correct scope of vision
+    let degree = modulo(direction.unwrap(), 360.) - self.degree_from_horiz();
+    if degree.abs() >= 45. { return false }
+    true
+  }
+  fn can_see_food(&self, reference:Food) -> bool {
+    let a = self.pos.x - check_pos.x;
+    let b = self.pos.y - check_pos.y;
+    let c = ((a*a) + (b*b)).sqrt();
+    if c <= self.detect {return true}
+    false
+}
+  
+  
+  fn turn_right(&mut self) {}
+  fn turn_left(&mut self) {}
+  fn turn_far_right(&mut self) {}
+  fn turn_far_left(&mut self) {}
+}
 
 // Quality of life
 impl Ant {
   // Quality of life
+  
   fn rand_pos(&self) -> IVec2 {
     let pos = self.pos + IVec2::new(
       rand::gen_range(-20, 20),rand::gen_range(-20, 20)
     );
     pos
   }
+  // Returns standerd degree of oriantation with angles obeying:
+  // cos(0) = vel (x,0), cos(90) = vel (0,y), cos(180) = vel (-x,0), cos(270) = vel (0,-y)
+  fn degree_from_horiz(x:i32,y:i32) -> f32 {
+    let x: f32 = x as f32;
+    let y: f32 = y as f32;
+    let x1 = &x.abs() == &x;
+    let y1 = &y.abs() == &y;
+    if x == 0. {            
+        let y = y.abs() == y;
+        match y {
+          true => return 90.,
+          false => return 270.,
+        }
+    }
+    if y == 0. {
+      let x = x.abs() == x;
+      match x {
+        true => return 0.,
+        false => return 180.,
+      }
+    }
+    let degree = f32::to_degrees(f32::atan(y/x));
+    match y1 {
+        true => {match x1 {
+            true => return degree,
+            false => return 180. - degree,
+        }},
+        false => {match x1 {
+            true => return 360. - degree,
+            false => return degree + 180.,
+        }}
+    }
+  }
+  //returns the distence values between two {ants}
+  fn trig_calculator(&self, i: Ant) -> (IVec2,f32,f32) {
+    let x = self.pos.x - i.pos.x;
+    let y = self.pos.y - i.pos.y;
+    let r = ((x*x) as f32 + (y*y) as f32).sqrt();
+    let theta = Self::degree_from_horiz(x, y);
+    let xy = IVec2::new(x,y);
+    (xy,r,theta)
+}
+
 }
 
 

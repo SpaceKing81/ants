@@ -1,5 +1,6 @@
-mod colony;
+// mod colony;
 mod ants;
+mod food;
 use macroquad::prelude::*;
 // pub use crate::colony:: as Colony;
 pub use crate::ants::Ant as Ant;
