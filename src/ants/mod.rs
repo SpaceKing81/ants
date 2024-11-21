@@ -16,7 +16,7 @@ pub struct Ant {
   pos: IVec2,
   vel: IVec2,
   hp: u32,
-  age: u128,
+  age: u64,
   mass: u32,
   speed: u32,
   att_str: u32,
@@ -34,7 +34,7 @@ impl Ant {
       100..=120=> Self::new_attacker(self),
       130..=140=> Self::new_defender(self),
       _=> Self::new_queen(self),
-      // should be 0-15, tested it so it shouldn't be panicing
+      // should be 0-150, tested it so it shouldn't be panicing
     };
     new
   }
@@ -176,6 +176,62 @@ impl Ant {
     draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/10., GOLD);
   }
 }
+// Age
+impl Ant { 
+  pub fn check_old(&self) -> bool {
+    match self.caste {
+      Caste::Que => return self.check_old_queen(),
+      Caste::Work => return self.check_old_worker(),
+      Caste::Look => return self.check_old_scout(),
+      Caste::Att => return self.check_old_attacker(),
+      Caste::Def => return self.check_old_defender(),
+      _=> panic!("bruh. You did something to the caste system, and now the age 
+      stuff is causing errors cuz you forgot to update the match"),
+    }
+  }
+  
+  fn check_old_worker(&self) -> bool {
+    if self.age > 50000{
+      return true
+    }
+    false
+  }
+  fn check_old_scout(&self) -> bool {
+    if self.age > 600000{
+      return true
+    }
+    false
+  }
+  fn check_old_attacker(&self) -> bool {
+    if self.age > 80000{
+      return true
+    }
+    false
+  }
+  fn check_old_defender(&self) -> bool {
+    if self.age > 100000{
+      return true
+    }
+    false
+  }
+  fn check_old_queen(&self) -> bool{
+    if self.age > 1000000 {
+      return true
+    }
+    false
+  }
+  fn ageing(&mut self) {
+    self.age += 1;
+  }
+}
+//Death and taxes
+impl Ant {
+  // pub fn death() -> Food {
+
+  }
+// }
+
+
 // Quality of life
 impl Ant {
   // Quality of life
