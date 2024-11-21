@@ -32,7 +32,7 @@ fn window_conf() -> Conf {
       // }
       // let mut mappy = Collection::new_collection(500);
     let mut test = Ant::initial_spawn(
-        750, 750, 500, 500
+        750, 500
     ); let mut time = 0;
     
       loop {
@@ -44,8 +44,8 @@ fn window_conf() -> Conf {
         //   Testing
           if is_mouse_button_pressed(MouseButton::Left) {
             test = Ant::initial_spawn(
-                mouse_position().0 as i32, mouse_position().0 as i32, 
-                mouse_position().1 as i32, mouse_position().1 as i32
+                mouse_position().0 as i32, 
+                mouse_position().1 as i32
             );
             }
             test.0.draw_ant();

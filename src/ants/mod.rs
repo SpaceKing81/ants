@@ -27,21 +27,20 @@ pub struct Ant {
 impl Ant {
   // New ants
   pub fn new_ant(&mut self) -> Ant {
-    let num:u8 = rand::gen_range(0, 15);
+    let num:u8 = rand::gen_range(0, 150);
     let new = match num {
-      0..=5 => Ant::new_worker(self),
-      6..=9=> Ant::new_scout(self),
-      10..=12=> Ant::new_attacker(self),
-      13..=14=> Ant::new_defender(self),
-      _=> panic!("Something broke with the rand num generator for a new ant"),
+      0..=50 => Self::new_worker(self),
+      60..=90=> Self::new_scout(self),
+      100..=120=> Self::new_attacker(self),
+      130..=140=> Self::new_defender(self),
+      _=> Self::new_queen(self),
       // should be 0-15, tested it so it shouldn't be panicing
     };
     new
   }
-  pub fn initial_spawn(lowx:i32,x:i32,lowy:i32,y:i32) -> (Ant,Ant,Ant,Ant,Ant,Ant,Ant) {
+  pub fn initial_spawn(x:i32,y:i32) -> (Ant,Ant,Ant,Ant,Ant,Ant,Ant) {
     // random position
-    // let pos = IVec2::new(rand::gen_range(lowx, x),rand::gen_range(lowy, y));
-    let pos = IVec2::new(x, y); //temp
+    let pos = IVec2::new(x, y);
     // starter queen
     let mut start = Ant {
       caste: Caste::Que,
