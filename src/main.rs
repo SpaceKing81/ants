@@ -36,6 +36,10 @@ fn window_conf() -> Conf {
     ); let mut time = 0;
     
       loop {
+        //quit option
+        if is_key_down(KeyCode::Q){
+          break;
+        }
           // for mut i in 0..colonies.len() {
           // // Draw the simulation
           clear_background(Color::new(0.,0.,0.1,1.0));
