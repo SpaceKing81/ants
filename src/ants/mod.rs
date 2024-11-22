@@ -251,23 +251,7 @@ impl Ant {
   fn move_forward(&mut self) {
     self.pos += self.vel;
   }
-  pub fn in_detect_range_check(&self, check_pos: Ant) -> bool {
-    // first checks if object is in circular detection range
-    let (_x,_y,r,direction) = self.trig_calculator(check_pos);
-    if r > self.detect { return false }
-
-    // second, find if the object is in the correct scope of vision
-    let degree = modulo(direction.unwrap(), 360.) - self.degree_from_horiz();
-    if degree.abs() >= 45. { return false }
-    true
-  }
-  fn can_see_food(&self, reference:Food) -> bool {
-    let a = self.pos.x - check_pos.x;
-    let b = self.pos.y - check_pos.y;
-    let c = ((a*a) + (b*b)).sqrt();
-    if c <= self.detect {return true}
-    false
-}
+  
   
   
   fn turn_right(&mut self) {}
