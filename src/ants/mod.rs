@@ -1,8 +1,11 @@
+const TURN_DEGREE:f32= 18.0; 
+
 use macroquad::{math, prelude::*, rand::{self, ChooseRandom}};
 // use crate::{colony};
 use crate::food::{Food};
 
-
+// first the big number, then the number you wish base with
+// ie: a modulo b, 7 mod 2 = 1
 fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add<Output = T> + Copy, {((a % b) + b) % b} // calculate modulus operations
 
 
@@ -247,17 +250,48 @@ impl Ant {
 }
 //Movement
 impl Ant {
-  
+  // inner directions alter by TURN_DEGREE
+  // Outer directions alter by twice TURN_DEGREE
+
   fn move_forward(&mut self) {
     self.pos += self.vel;
   }
+  fn turn_right(&mut self) {
+    self.turn(-TURN_DEGREE);
+  }
+  fn turn_left(&mut self) {
+    self.turn(TURN_DEGREE);
+  }
+  fn turn_far_left(&mut self) {
+    self.turn(2.0 * TURN_DEGREE);
+  }
+  fn turn_far_right(&mut self) {
+    self.turn(-2.0*TURN_DEGREE);
+  }
   
+  //Turns an ant by a given angle
+  fn turn(&mut self, angle:f32) {
+    // Determine inner product
+    let inn_prod_init = self.vel.x*self.vel.x + self.vel.y*self.vel.y;
+
+    // Get the current angle
+    let theta = Self::degree_from_horiz(self.vel.x, self.vel.y);
+    // Get the desired angle
+    let new_theta = modulo(theta + angle, 360.);
+    
+    // Gets the unit velocity
+    let (x,y) = (new_theta.cos() as i32, new_theta.sin() as i32);
+    let unit_vel = IVec2::new(x,y);
+    let inn_prod_unit = unit_vel.x*unit_vel.x + unit_vel.y*unit_vel.y;
+    let alpha = inn_prod_init/inn_prod_unit;
+
+    //Alter the velocity to the new direction, and maintain the length
+    self.vel = alpha * unit_vel;
+
+
   
+  }
   
-  fn turn_right(&mut self) {}
-  fn turn_left(&mut self) {}
-  fn turn_far_right(&mut self) {}
-  fn turn_far_left(&mut self) {}
 }
 
 // Quality of life

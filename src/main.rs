@@ -21,8 +21,6 @@ fn window_conf() -> Conf {
           ..Default::default()
       }
   }
-  
-  
   #[macroquad::main(window_conf())]
   async fn main() {
       // rand::srand(miniquad::date::now().to_bits());
@@ -34,33 +32,40 @@ fn window_conf() -> Conf {
       // let mut mappy = Collection::new_collection(500);
     let mut test = Ant::initial_spawn(
         750, 500
-    ); let mut time = 0;
-    
+    ); 
+    let mut time = 0;
       loop {
         //quit option
-        if is_key_down(KeyCode::Q){
+        clear_background(Color::new(0.,0.,0.1,1.0));
+        if is_key_down(KeyCode::Escape){
           break;
         }
-          // for mut i in 0..colonies.len() {
-          // // Draw the simulation
-          clear_background(Color::new(0.,0.,0.1,1.0));
+        // for mut i in 0..colonies.len() {
+        // // Draw the simulation
           
           // /*
         //   Testing
+        {
           if is_mouse_button_pressed(MouseButton::Left) {
             test = Ant::initial_spawn(
-                mouse_position().0 as i32, 
-                mouse_position().1 as i32
+              mouse_position().0 as i32, 
+              mouse_position().1 as i32
             );
-            }
-            test.0.draw_ant();
-            test.1.draw_ant();
-            test.2.draw_ant();
-            test.3.draw_ant();
-            test.4.draw_ant();
-            test.5.draw_ant();
-            test.6.draw_ant();
-            draw_text(&format!("time: {}", time), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+          }
+          
+
+
+
+
+          test.0.draw_ant();
+          test.1.draw_ant();
+          test.2.draw_ant();
+          test.3.draw_ant();
+          test.4.draw_ant();
+          test.5.draw_ant();
+          test.6.draw_ant();
+          draw_text(&format!("time: {}",time), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+        }
             // */
 
           // // ColonyImplimintation::draw_colony(&colony);
