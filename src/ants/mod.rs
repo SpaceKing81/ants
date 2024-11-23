@@ -12,7 +12,6 @@ fn modulo<T>(a: T, b: T) -> T where T: std::ops::Rem<Output = T> + std::ops::Add
 #[derive(Clone)]
 #[derive(Copy)]
 
-
 enum Caste {
   Work, //Worker
   Look, //Scout
@@ -25,6 +24,7 @@ enum Caste {
 pub struct Ant {
   caste: Caste,
   pub pos: IVec2,
+  id: u16,
   vel: IVec2,
   hp: u16,
   age: u64,
@@ -34,6 +34,20 @@ pub struct Ant {
   armor: u8,
   pub str: u8,
 
+}
+// Get Fns
+impl Ant {
+  // Get Functions
+  pub fn get_size(&self) -> f32 {
+    match self.caste {
+      Caste::Que => (self.mass as f32)/10.,
+      Caste::Work => (self.mass as f32)/4.,
+      Caste::Look => (self.mass as f32)/3.,
+      Caste::Att => (self.mass as f32)/3.,
+      Caste::Def => (self.mass as f32)/3.,
+    }
+  }
+  
 }
 // New Ants
 impl Ant {
@@ -50,12 +64,13 @@ impl Ant {
     };
     new
   }
-  pub fn initial_spawn(x:i32,y:i32) -> (Ant,Ant,Ant,Ant,Ant,Ant,Ant) {
+  pub fn initial_spawn(x:i32,y:i32, id:u16) -> (Ant,Ant,Ant,Ant,Ant,Ant,Ant) {
     // random position
     let pos = IVec2::new(x, y);
     // starter queen
     let mut queen = Ant {
       caste: Caste::Que,
+      id,
       vel: IVec2::new(0, 0),
       hp: 100,
       age: 0,
@@ -80,9 +95,11 @@ impl Ant {
 
   fn new_worker(&mut self) -> Ant {
     let pos = self.rand_pos();
+    let id = self.id;
     let mut out: Ant = Ant {
       caste: Caste::Work,
       pos,
+      id,
       vel: IVec2::new(0, 0),
       hp: 10,
       age: 0,
@@ -96,9 +113,11 @@ impl Ant {
   }
   fn new_scout(&mut self) -> Ant {
     let pos = self.rand_pos();
+    let id = self.id;
     let mut out:Ant = Ant {
       caste: Caste::Look,
       pos,
+      id,
       vel: IVec2::new(0, 0),
       hp: 10,
       age: 0,
@@ -112,9 +131,11 @@ impl Ant {
   }
   fn new_defender(&mut self) -> Ant {
     let pos = self.rand_pos();
+    let id = self.id;
     let mut out :Ant = Ant {
       caste: Caste::Def,
       pos,
+      id,
       vel: IVec2::new(0, 0),
       hp: 20,
       age: 0,
@@ -128,9 +149,11 @@ impl Ant {
   }
   fn new_attacker(&mut self) -> Ant {
     let pos = self.rand_pos();
+    let id = self.id;
     let mut out:Ant = Ant {
       caste: Caste::Att,
       pos,
+      id,
       vel: IVec2::new(0, 0),
       hp: 15,
       age: 0,
@@ -144,9 +167,11 @@ impl Ant {
   }
   fn new_queen(&mut self) -> Ant {
     let pos = self.rand_pos();
+    let id = self.id;
     let mut new = Ant {
       caste: Caste::Que,
       pos,
+      id,
       vel: IVec2::new(0, 0),
       hp: 100,
       age: 0,
@@ -173,19 +198,19 @@ impl Ant {
   }
 
   fn draw_worker(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/5., DARKBLUE);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, self.get_size(), DARKBLUE);
   }
   fn draw_scout(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/4., SKYBLUE);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, self.get_size(), SKYBLUE);
   }
   fn draw_defender(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/2., YELLOW);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, self.get_size(), YELLOW);
   }
   fn draw_attacker(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/2., RED);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, self.get_size(), RED);
   }
   fn draw_queen(&self) {
-    draw_circle(self.pos.x as f32, self.pos.y as f32, (self.mass as f32)/10., GOLD);
+    draw_circle(self.pos.x as f32, self.pos.y as f32, self.get_size(), GOLD);
   }
 }
 // Age
@@ -293,6 +318,9 @@ impl Ant {
   }
   
 }
+//
+
+
 
 // Quality of life
 impl Ant {
