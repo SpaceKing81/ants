@@ -20,6 +20,8 @@ enum Caste {
   Att,  //Attacker
   Que, //Queen
 }
+#[derive(Clone)]
+#[derive(Copy)]
 pub struct Ant {
   caste: Caste,
   pub pos: IVec2,
@@ -52,7 +54,7 @@ impl Ant {
     // random position
     let pos = IVec2::new(x, y);
     // starter queen
-    let mut start = Ant {
+    let mut queen = Ant {
       caste: Caste::Que,
       vel: IVec2::new(0, 0),
       hp: 100,
@@ -65,15 +67,15 @@ impl Ant {
       str: 50,
       };
     // starter workers...probably 
-    let mut ant1 = Self::new_ant(&mut start);
-    let mut ant2 = Self::new_ant(&mut start);
-    let mut ant3 = Self::new_ant(&mut start);
-    let mut ant4 = Self::new_ant(&mut start);
-    let mut ant5 = Self::new_ant(&mut start);
-    let mut ant6 = Self::new_ant(&mut start);
+    let mut ant1 = Self::new_ant(&mut queen);
+    let mut ant2 = Self::new_ant(&mut queen);
+    let mut ant3 = Self::new_ant(&mut queen);
+    let mut ant4 = Self::new_ant(&mut queen);
+    let mut ant5 = Self::new_ant(&mut queen);
+    let mut ant6 = Self::new_ant(&mut queen);
     
     
-    (start, ant1, ant2, ant3, ant4,ant5,ant6)
+    (queen, ant1, ant2, ant3, ant4,ant5,ant6)
   }
 
   fn new_worker(&mut self) -> Ant {
@@ -252,27 +254,31 @@ impl Ant {
 impl Ant {
   // inner directions alter by TURN_DEGREE
   // Outer directions alter by twice TURN_DEGREE
-
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
+  pub fn accelerate(&mut self, a:i32) {
+    self.vel = ivec2(a, -a);
   }
-  fn turn_right(&mut self) {
+  pub fn move_forward(&mut self) {
+    self.pos += self.vel;
+    self.pos = modulo(self.pos,ivec2(1500,1000))
+  }
+  pub fn turn_right(&mut self) {
     self.turn(-TURN_DEGREE);
   }
-  fn turn_left(&mut self) {
+  pub fn turn_left(&mut self) {
     self.turn(TURN_DEGREE);
   }
-  fn turn_far_left(&mut self) {
+  pub fn turn_far_left(&mut self) {
     self.turn(2.0 * TURN_DEGREE);
   }
-  fn turn_far_right(&mut self) {
+  pub fn turn_far_right(&mut self) {
     self.turn(-2.0*TURN_DEGREE);
   }
   
   //Turns an ant by a given angle
   fn turn(&mut self, angle:f32) {
+    if self.vel == ivec2(0, 0) { return; }
     // Determine inner product
-    let inn_prod_init = self.vel.x*self.vel.x + self.vel.y*self.vel.y;
+    let alpha = ((self.vel.x*self.vel.x + self.vel.y*self.vel.y) as f32).sqrt();
 
     // Get the current angle
     let theta = Self::degree_from_horiz(self.vel.x, self.vel.y);
@@ -280,16 +286,10 @@ impl Ant {
     let new_theta = modulo(theta + angle, 360.);
     
     // Gets the unit velocity
-    let (x,y) = (new_theta.cos() as i32, new_theta.sin() as i32);
-    let unit_vel = IVec2::new(x,y);
-    let inn_prod_unit = unit_vel.x*unit_vel.x + unit_vel.y*unit_vel.y;
-    let alpha = inn_prod_init/inn_prod_unit;
+    let (x,y) = (new_theta.cos(), new_theta.sin());
 
     //Alter the velocity to the new direction, and maintain the length
-    self.vel = alpha * unit_vel;
-
-
-  
+    self.vel = ivec2((x*alpha).round() as i32, (y*alpha).round() as i32);
   }
   
 }

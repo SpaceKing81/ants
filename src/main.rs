@@ -1,6 +1,8 @@
 // mod colony;
 mod ants;
 mod food;
+use std::{borrow::BorrowMut, iter};
+
 use macroquad::prelude::*;
 // pub use crate::colony:: as Colony;
 pub use crate::ants::Ant as Ant;
@@ -30,9 +32,19 @@ fn window_conf() -> Conf {
       //     colonies[i] = holder::Collection::new_collection(200)
       // }
       // let mut mappy = Collection::new_collection(500);
-    let mut test = Ant::initial_spawn(
+    let mut test1 = Ant::initial_spawn(
         750, 500
-    ); 
+    );
+    let mut test0: Vec<Ant> = vec![test1.0,test1.1,test1.2,test1.3,test1.4,test1.5,test1.6];
+    for i in 0..100 {
+      let mut test1 = Ant::initial_spawn(
+        750, 500
+    );
+    let mut temp2: Vec<Ant> = vec![test1.0,test1.1,test1.2,test1.3,test1.4,test1.5,test1.6];
+    test0.append(&mut temp2);
+    }
+    for i in 0..((&test0).len()) {test0[i].accelerate(1);}
+
     let mut time = 0;
       loop {
         //quit option
@@ -46,25 +58,35 @@ fn window_conf() -> Conf {
           // /*
         //   Testing
         {
-          if is_mouse_button_pressed(MouseButton::Left) {
-            test = Ant::initial_spawn(
-              mouse_position().0 as i32, 
-              mouse_position().1 as i32
-            );
+          // Test something
+          {}
+          // Move Ants
+          {
+            for i in 0..((&test0).len()) {
+              test0[i].move_forward();
+              let chance = rand::gen_range(0, 10);
+              if chance > 5 {
+                match chance {
+                  6=> test0[i].turn_far_left(),
+                  7=> test0[i].turn_left(),
+                  8=> test0[i].turn_right(),
+                  9=> test0[i].turn_far_right(),
+                  _=> panic!("Test error: Movement")
+                }
+              }
+            }
           }
           
 
-
-
-
-          test.0.draw_ant();
-          test.1.draw_ant();
-          test.2.draw_ant();
-          test.3.draw_ant();
-          test.4.draw_ant();
-          test.5.draw_ant();
-          test.6.draw_ant();
-          draw_text(&format!("time: {}",time), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+          //Draw
+          {
+            let temp = test0.clone();
+            let it = temp.iter();
+            for i in it {
+              i.draw_ant();
+            }
+            draw_text(&format!("time: {}",time), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+          }
         }
             // */
 
