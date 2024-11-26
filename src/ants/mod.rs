@@ -1,4 +1,9 @@
-const TURN_DEGREE:f32= 18.0; 
+const TURN_DEGREE:f32 = 18.0;
+const WORK_DETECT:f32 = 5.0;
+const LOOK_DETECT:f32 = 20.0;
+const ATT_DETECT:f32 = 10.0;
+const DEF_DETECT:f32 = 5.0;
+const QUE_DETECT:f32 = 1.0;
 
 use macroquad::{math, prelude::*, rand::{self, ChooseRandom}};
 // use crate::{colony};
@@ -24,7 +29,7 @@ enum Caste {
 pub struct Ant {
   caste: Caste,
   pub pos: IVec2,
-  id: u16,
+  pub id: u16,
   vel: IVec2,
   hp: u16,
   age: u64,
@@ -48,6 +53,20 @@ impl Ant {
     }
   }
   
+  pub fn get_detection_range(&self) -> usize {
+    match self.caste {
+      Caste::Work => self.detect_range(WORK_DETECT),
+      Caste::Que => self.detect_range(QUE_DETECT),
+      Caste::Att => self.detect_range(ATT_DETECT),
+      Caste::Def => self.detect_range(DEF_DETECT),
+      Caste::Look => self.detect_range(LOOK_DETECT),
+    } 
+  }
+  fn detect_range(&self, x:f32) -> usize {
+    let range = self.get_size() + x;
+    range.round() as usize
+  }
+
 }
 // New Ants
 impl Ant {
