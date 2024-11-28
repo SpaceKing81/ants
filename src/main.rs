@@ -1,7 +1,8 @@
 // mod colony;
 mod ants;
 mod food;
-mod presence;
+// mod presence;
+mod pher;
 
 use macroquad::prelude::*;
 // pub use crate::colony:: as Colony;
@@ -89,7 +90,7 @@ async fn main() {
         for i in it {
           i.draw_ant();
         }
-        draw_text(&format!("time: {}",get_time()), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+        draw_text(&format!("time: {}",get_time().round()), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
       }
     }
         // */
