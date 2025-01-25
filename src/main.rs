@@ -1,12 +1,5 @@
-// mod colony;
-mod ants;
-mod food;
-// mod presence;
-mod pher;
-
 use macroquad::prelude::*;
 // pub use crate::colony:: as Colony;
-pub use crate::ants::Ant as Ant;
 
 
 fn window_conf() -> Conf {
@@ -37,7 +30,7 @@ async fn main() {
     750, 500, 0
   );
   let mut test0: Vec<Ant> = vec![test1.0,test1.1,test1.2,test1.3,test1.4,test1.5,test1.6];
-  for _i in 0..100 {
+  for _i in 0..2 {
     let test1 = Ant::initial_spawn(
       750, 500, 0
     );
