@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 // pub use crate::colony:: as Colony;
 mod ants;
+mod matrix;
 
 fn window_conf() -> Conf {
 
