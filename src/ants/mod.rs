@@ -20,7 +20,6 @@ const QUE_DETECT:u32 = 1;
 
 
 #[derive(Clone)]
-#[derive(Copy)]
 enum Caste {
   Work, //Worker
   Look, //Scout
@@ -29,11 +28,10 @@ enum Caste {
   Que, //Queen
 }
 #[derive(Clone)]
-#[derive(Copy)]
 pub struct Ant {
   caste: Caste,
-  pub pos: IVec2,
   pub id: u16,
+  pub pos: IVec2,
   vel: IVec2,
   hp: u16,
   age: u64,
@@ -174,7 +172,7 @@ impl Ant {
   }
 }
 
-// Implied Values
+// Derived Values
 impl Ant {
   // Get Functions
   pub fn get_size(&self) -> u32 {
@@ -183,8 +181,7 @@ impl Ant {
       Caste::Work => self.mass/4,
       _=> self.mass/3,
     }
-  }
-  
+  } 
   pub fn get_detection_range(&self) -> usize {
     match self.caste {
       Caste::Work => self.detect_range(WORK_DETECT),
@@ -203,14 +200,10 @@ impl Ant {
 
 // Death and Taxes
 impl Ant {
-  pub fn death(self) -> Food {
+  pub fn death(self) { //tbd
     //converts an ant into food
     let (mass, pos) = (self.mass, self.pos);
-    let mut death_tax = Food {
-      mass,
-      pos,
-    };
-    death_tax
+    //food thing not yet made
   }
 
 
