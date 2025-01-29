@@ -259,11 +259,9 @@ impl Ant {
 }
 
 
-
-
 //Fog of War
 impl Ant {
-    fn new_fogowar(row:usize, col:usize) -> HashMap<(usize,usize),bool>{
+    pub fn new_fogowar() -> HashMap<(usize,usize),bool>{
       let new:HashMap<(usize,usize),bool> = HashMap::new();
       new
     }
