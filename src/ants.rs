@@ -1,4 +1,4 @@
-use std::{collections::HashMap, default};
+use std::{collections::HashMap};
 use macroquad::{prelude::*, rand};
 use miniquad::gl::user_addr_t;
 use crate::matrix::Matrix;

@@ -1,10 +1,12 @@
+use ants::Ant;
 use macroquad::prelude::*;
-// pub use crate::colony:: as Colony;
-mod ants;
-mod matrix;
-mod reletivity;
-mod food;
 
+mod ants;
+mod reletivity;
+mod pheremones;
+mod food;
+mod matrix;
+mod colony;
 
 fn window_conf() -> Conf {
 
@@ -23,6 +25,7 @@ fn window_conf() -> Conf {
 }
 #[macroquad::main(window_conf)]
 async fn main() {
+
   loop {
     //quit option
     clear_background(Color::new(0.,0.,0.1,1.0));
