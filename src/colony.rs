@@ -18,7 +18,8 @@ impl Colony {
   }
   pub fn first_colony() -> HashMap<u16,Self> {
     let mut new = HashMap::new();
-    new.insert(1,Self::new(1));
+    let key:u16 = 1;
+    new.insert(key,Self::new(key));
     new
 
   }

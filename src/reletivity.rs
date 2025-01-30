@@ -18,7 +18,7 @@ struct Map {
   
   food: Matrix<u32>,
   life: HashMap<u16, Colony>,
-  pher: HashMap<u16, Pher>,
+  pher: Matrix<Pher>,
 
   space: Matrix<bool>,
   time: usize,
@@ -34,13 +34,21 @@ impl Map {
 
       food:Self::new_food_field(width, height),
       life:Colony::first_colony(),
-      pher:Self::new_pher_field(width,height),
+      pher:Self::new_pher_field(width, height),
 
       space:Self::space_new(width,height),
       time:0,
       dt,
     }
   }
+  fn pass_the_time(&mut self) {
+    self.time += self.dt;
+  }
+  fn new_life(&mut self) {
+    self.colonynum +=1;
+    self.life.insert(self.colonynum, Colony::new(self.colonynum));
+  }
+
 }
 impl Map {
   fn space_new(width:usize, height:usize) -> Matrix<bool> {
@@ -49,9 +57,8 @@ impl Map {
   fn new_food_field(width:usize, height:usize) -> Matrix<u32> {
     Matrix::new(height, width, 0)
   }
-  fn new_pher_field(width:usize,height:usize) -> HashMap<u16, Pher>{
-    let new = HashMap::new();
-    new
+  fn new_pher_field(width:usize,height:usize) -> Matrix<Pher> {
+    Matrix::new(height, width, Pher::new())
   }
 
 }

@@ -28,6 +28,13 @@ enum Caste {
   Que, //Queen
 }
 #[derive(Clone)]
+enum Task {
+  ToFood,
+  ToHome,
+  ToFight,
+}
+
+#[derive(Clone)]
 pub struct Ant {
   caste: Caste,
   pub id: u16,
@@ -40,11 +47,13 @@ pub struct Ant {
   att_str: u8,
   armor: u8,
   pub str: u8,
+  task: Task,
+  holding: Option<u32>,
 }
 
 // New ants
 impl Ant {
-  pub fn new_ant(&mut self) -> Ant {
+  pub fn birth_ant(&mut self) -> Ant {
     let num:u8 = rand::gen_range(0, 150);
     let new = match num {
       0..=50 => Self::new_worker(self),
@@ -72,14 +81,16 @@ impl Ant {
       att_str: 0,
       armor: 0,
       str: 50,
+      task: Task::ToFood,
+      holding: None,
       };
     // starter workers...probably 
-    let mut ant1 = Self::new_ant(&mut queen);
-    let mut ant2 = Self::new_ant(&mut queen);
-    let mut ant3 = Self::new_ant(&mut queen);
-    let mut ant4 = Self::new_ant(&mut queen);
-    let mut ant5 = Self::new_ant(&mut queen);
-    let mut ant6 = Self::new_ant(&mut queen);
+    let mut ant1 = Self::birth_ant(&mut queen);
+    let mut ant2 = Self::birth_ant(&mut queen);
+    let mut ant3 = Self::birth_ant(&mut queen);
+    let mut ant4 = Self::birth_ant(&mut queen);
+    let mut ant5 = Self::birth_ant(&mut queen);
+    let mut ant6 = Self::birth_ant(&mut queen);
     
     
     (queen, ant1, ant2, ant3, ant4,ant5,ant6)
@@ -100,6 +111,8 @@ impl Ant {
       att_str: 5,
       armor: 7,
       str: 200,
+      task: Task::ToFood,
+      holding: None,
     }
   }
   fn new_scout(&mut self) -> Ant {
@@ -117,6 +130,8 @@ impl Ant {
       att_str: 2,
       armor: 4,
       str: 150,
+      task: Task::ToFood,
+      holding: None,
     }
   }
   fn new_defender(&mut self) -> Ant {
@@ -134,6 +149,8 @@ impl Ant {
       att_str: 5,
       armor: 20,
       str: 150,
+      task: Task::ToFood,
+      holding: None,
     }
   }
   fn new_attacker(&mut self) -> Ant {
@@ -151,6 +168,8 @@ impl Ant {
       att_str: 20,
       armor: 10,
       str: 200,
+      task: Task::ToFood,
+      holding: None,
     }
   }
   fn new_queen(&mut self) -> Ant {
@@ -168,6 +187,8 @@ impl Ant {
       att_str: 0,
       armor: 0,
       str: 50,
+      task: Task::ToFood,
+      holding: None,
       }
   }
 }
@@ -182,6 +203,7 @@ impl Ant {
       _=> self.mass/3,
     }
   } 
+  
   pub fn get_detection_range(&self) -> usize {
     match self.caste {
       Caste::Work => self.detect_range(WORK_DETECT),
@@ -195,8 +217,8 @@ impl Ant {
     (self.get_size() + x ) as usize
 
   }
+  
 }
-
 
 // Death and Taxes
 impl Ant {
@@ -292,7 +314,6 @@ impl Ant {
       }
     }
 }
-
 
 // Quality of life
 impl Ant {
