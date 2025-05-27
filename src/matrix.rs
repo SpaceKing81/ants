@@ -18,11 +18,11 @@ matrix
 
 */
   /// Makes a new 0 index matrix. (0,0) is a11, (2,2) is a33
-  pub fn new(rows:usize, default: T) -> Self where T:Clone,{
+  pub fn new(rows:usize, cols:usize, default: T) -> Self where T:Clone,{
     Matrix {
       data: vec![default; rows*rows],
       rows,
-      cols:rows,
+      cols,
     }
   }
   pub fn get(&self, row:usize, col:usize) -> Option<&T> {
