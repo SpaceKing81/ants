@@ -26,5 +26,4 @@ impl<T> Matrix<T> {
     Ok(())
   }
   
-
 }
