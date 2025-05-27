@@ -6,14 +6,18 @@ struct Matrix<T> {
 impl<T> Matrix<T> {
 /*
 matrix
+  row = y
+  col = x
+  
   0|1|2
   3|4|5
   6|7|8
   ->
   data
-  [0,1,2,3,4,5,6,7,8]
+  [0,1,2|,3,4,5|,6,7,8]
+
 */
-  /// Makes a new 0 index matrix. (0,0) is a11
+  /// Makes a new 0 index matrix. (0,0) is a11, (2,2) is a33
   pub fn new(rows:usize, default: T) -> Self where T:Clone,{
     Matrix {
       data: vec![default; rows*rows],
@@ -22,6 +26,7 @@ matrix
     }
   }
   pub fn get(&self, row:usize, col:usize) -> Option<&T> {
+    // (2,1) -> Some(&7)
     if self.rows <= row || self.cols <= col {
       return None;
     }
