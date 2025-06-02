@@ -3,16 +3,17 @@ use crate::consts::*;
 use glam::Vec2;
 
 // The type of pher that gets dropped:
-// Ants goal tofood -> follow tofood, emit tohome
-// Ants goal tohome -> follow tohome, emit tofood
+// Ants goal tofood -> follow tofood to food, emit tohome
+// Ants goal tohome -> follow tohome to queen, emit tofood
 // Ants goal tofight -> follow tofight, emit tofight
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Goal {
-  ToHome,
-  ToFood,
-  ToFight,
-  Queen,
+  ToHome, // general surround the queen
+  ToFood, // general explore out goal
+  ToFight, // activly looking for enemy, fight mode
+  Queen, // identify's queen
+  Food, // identify's food
 }
 
 #[derive(Clone,

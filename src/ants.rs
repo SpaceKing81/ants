@@ -1,3 +1,4 @@
+
 use glam::Vec2;
 use crate::pher::{Pher,Goal};
 use crate::food::Food;
@@ -20,7 +21,6 @@ struct Worker {
   pos:Vec2, // pos
   vel:Vec2, // vel
   mass:f32, // food held
-
   age:usize, // age
 }
 #[derive(Clone, Debug)]
@@ -30,8 +30,6 @@ struct Explorer {
   attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
   pos:Vec2, // pos
   vel:Vec2, // vel
-  // mass:f32, // mass
-
   age:usize, // age
 }
 #[derive(Clone, Debug)]
@@ -41,8 +39,6 @@ struct Soldier {
   hp:f32, // health
   pos:Vec2, // pos
   vel:Vec2, // vel
-  // mass:f32, // mass
-
   age:usize, // age
 }
 #[derive(Clone, Debug)]
@@ -52,68 +48,17 @@ struct Defender {
   hp:f32, // health
   pos:Vec2, // pos
   vel:Vec2, // vel
-  // mass:f32, // mass
-
   age:usize, // age
 }
 
-
-
-/*
-Ant {
-  caste:
-  goal:
-
-  loyalty: 
-
-  // Alterable
-  hp: 
-  pos:
-  vel:
-  mass:
-
-  age: 0,
-}
-   */
-/*
-trait Queen {
-  fn first_queen(pos:Vec2,loyalty:u32) -> Self;
-  fn new_queen(&self) -> Self;
-  fn birth(&self, caste:Caste) -> Self;
-  fn eat(&mut self, food_piece:Food);
-  fn q_emit_pher(&self) -> Pher;
-  fn q_heal(&mut self);
-}
-trait Worker {
-  fn new_worker(&self) -> Self;
-  fn drop_food(&mut self) -> Food;
-  fn pick_up_food(&mut self, food:&mut Food);
-  fn w_emit_pher(&self) -> Pher;
-}
-trait Explorer {
-  fn new_explorer(&self) -> Self;
-  fn expand_map();
-  fn e_emit_pher(&self) -> Pher;
-}
-trait Soldier {
-  fn new_soldier(&self) -> Self;
-  fn s_attack();
-  fn s_emit_pher(&self) -> Pher;
-}
-trait Defender {
-  fn new_defender(&self) -> Self;
-  fn d_heal();
-  fn d_emit_pher(&self) -> Pher;
-}
- */
-
 trait Ant {
-  fn move_forward(&mut self);
-  fn turn_left(&mut self);
-  fn turn_right(&mut self);
+  fn new(queen:&Queen) -> Self;
+  fn move_forward(&mut self) {todo!()}
+  fn turn_left(&mut self) {todo!()}
+  fn turn_right(&mut self) {todo!()}
 
-  fn ant_behind(&self) -> Vec2;
-  fn ant_front(&self) -> Vec2;
+  fn ant_behind(&self) -> Vec2 {todo!()}
+  fn ant_front(&self) -> Vec2 {todo!()}
   
   fn kill(self) -> Food;
   fn check_should_die(&self) -> bool;
@@ -123,10 +68,7 @@ trait Ant {
 
 impl Queen {
   fn first_queen(pos:Vec2,loyalty:u32) -> Self {
-    Ant {
-      caste:Caste::Queen,
-      goal:Goal::ToFood,
-
+    Self {
       loyalty,
 
       // Alterable
@@ -138,38 +80,14 @@ impl Queen {
       age: 0,
     }
   }
-  fn new_queen(&self) -> Self {
-    Ant {
-      caste:Caste::Queen,
-      goal:Goal::ToFood,
-
-      loyalty: self.loyalty,
-
-      // Alterable
-      hp: Q_MAX_HP,
-      pos: self.ant_behind(),
-      vel:Vec2::ZERO,
-      mass:Q_BASE_MASS,
-
-      age: 0,
-    }
-  }
-  fn birth(&self, caste:Caste) -> Self {
-    match caste {
-      Caste::Defender => self.new_defender(),
-      Caste::Explorer => self.new_explorer(),
-      Caste::Queen => self.new_queen(),
-      Caste::Soldier => self.new_soldier(),
-      Caste::Worker => self.new_worker(),
-    }
+  fn birth<A:Ant>(&self) -> A {
+    todo!()
   }
   fn eat(&mut self, food_piece:Food) {
     self.mass += food_piece.mass;
   }
-  fn q_emit_pher(&self) -> Pher {
-    Pher::new(self.ant_behind(), Goal::ToHome)
-  }
-  fn q_heal(&mut self) {
+  
+  fn heal(&mut self) {
     let damage = Q_MAX_HP - self.hp;
     let enough_food_left = self.mass >= (Q_MIN_MASS+damage);
     if enough_food_left {
@@ -182,23 +100,34 @@ impl Queen {
     self.mass = Q_MIN_MASS;
   }
 }
-impl Worker {
-  fn new_worker(&self) -> Self {
-    Ant {
-      caste:Caste::Worker,
-      goal:Goal::ToFood,
-
-      loyalty: self.loyalty,
+impl Ant for Queen {
+  fn new(queen:&Queen) -> Self {
+    Queen {
+      loyalty: queen.loyalty,
 
       // Alterable
-      hp: W_MAX_HP,
-      pos:self.ant_behind(),
+      hp: Q_MAX_HP,
+      pos: queen.ant_behind(),
       vel:Vec2::ZERO,
-      mass:W_BASE_MASS,
+      mass:Q_BASE_MASS,
 
       age: 0,
     }
   }
+  fn emit_pher(&self) -> Pher {
+    Pher::new(self.ant_behind(), Goal::Queen)
+  }
+  fn check_should_die(&self) -> bool {
+    self.age > Q_MAX_AGE || self.hp <= 0.0
+  }
+  fn draw(&self) {
+      todo!()
+  }
+  fn kill(self) -> Food {
+      Food::new(self.pos, self.mass + Q_BASE_MASS)
+  }
+}
+impl Worker {
   fn drop_food(&mut self) -> Food {
     self.mass -= W_STR as f32;
     Food::new(self.ant_front(), W_STR as f32)
@@ -208,44 +137,135 @@ impl Worker {
     food.mass -= tbcarried;
     self.mass += tbcarried;
   }
-  fn w_emit_pher(&self) -> Pher {
-    match self.goal {
-      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
-      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
-      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+}
+impl Ant for Worker { 
+  fn new(queen:&Queen) -> Self {
+    Worker {
+      loyalty: queen.loyalty,
+      goal:Goal::ToFood,
+
+      // Alterable
+      attacked: (false,false),
+      pos: queen.ant_behind(),
+      vel:Vec2::ZERO,
+      mass:Q_BASE_MASS,
+
+      age: 0,
     }
   }
+  fn emit_pher(&self) -> Pher {
+    todo!()
+  }
+  fn check_should_die(&self) -> bool {
+      todo!()
+  }
+  fn draw(&self) {
+      todo!()
+  }
+  fn kill(self) -> Food {
+      todo!()
+  }
+
 }
 impl Explorer {
-  fn new_explorer(&self) -> Self {
-      todo!()
-  }
-  fn e_emit_pher(&self) -> Pher {
-      todo!()
-  }
   fn expand_map() {
       todo!()
   }
 }
+impl Ant for Explorer {
+  fn new(queen:&Queen) -> Self {
+    Self {
+      goal:Goal::ToFood,
+      loyalty: queen.loyalty,
+
+      // Alterable
+      attacked:(false,false),
+      pos: queen.ant_behind(),
+      vel:Vec2::ZERO,
+
+      age: 0,
+    }
+  }
+  fn emit_pher(&self) -> Pher {
+    match self.goal {
+      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
+      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
+      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+      _ => panic!("Explorer cannot have anything else!!!")
+    }
+  }
+  fn check_should_die(&self) -> bool {
+      todo!()
+  }
+  fn draw(&self) {
+      todo!()
+  }
+  fn kill(self) -> Food {
+      todo!()
+  }
+
+}
 impl Soldier {
-  fn new_soldier(&self) -> Self {
+  fn attack() {
       todo!()
   }
-  fn s_attack() {
+}
+impl Ant for Soldier {
+  fn new(queen:&Queen) -> Self {
+    Self {
+      goal: Goal::ToFood,
+      loyalty: queen.loyalty,
+
+      // Alterable
+      hp: S_MAX_HP,
+      pos: queen.ant_behind(),
+      vel: Vec2::ZERO,
+
+      age: 0,
+    }
+  }
+  fn emit_pher(&self) -> Pher {
+    todo!()
+  }
+  fn check_should_die(&self) -> bool {
       todo!()
   }
-  fn s_emit_pher(&self) -> Pher {
+  fn draw(&self) {
+      todo!()
+  }
+  fn kill(self) -> Food {
       todo!()
   }
 }
 impl Defender {
-  fn new_defender(&self) -> Self {
+  fn heal() {
       todo!()
   }
-  fn d_emit_pher(&self) -> Pher {
+}
+impl Ant for Defender { 
+  fn new(queen:&Queen) -> Self {
+    Self {
+      goal:Goal::ToHome,
+      loyalty: queen.loyalty,
+
+      // Alterable
+      hp: D_MAX_HP,
+      pos: queen.ant_behind(),
+      vel:Vec2::ZERO,
+
+      age: 0,
+    }
+  }
+  fn emit_pher(&self) -> Pher {
+    todo!()
+  }
+  fn check_should_die(&self) -> bool {
       todo!()
   }
-  fn d_heal() {
+  fn draw(&self) {
+      todo!()
+  }
+  fn kill(self) -> Food {
       todo!()
   }
 }

@@ -6,6 +6,7 @@ pub const Q_DEF:u32 = 10;
 pub const Q_BASE_MASS:f32 = 20.0;
 pub const Q_MIN_MASS:f32 = 5.0;
 pub const Q_MAX_HP:f32 = 20.0;
+pub const Q_MAX_AGE:usize = 5000;
 
 pub const W_STR:u32 = 10; // How much mass of food a worker can carry
 pub const W_ATT:u32 = 10;
@@ -16,6 +17,7 @@ pub const S_STR:u32 = 10;
 pub const S_ATT:u32 = 10;
 pub const S_DEF:u32 = 10;
 pub const S_BASE_MASS:f32 = 20.0;
+pub const S_MAX_HP:f32 = 40.0;
 
 pub const E_STR:u32 = 10;
 pub const E_ATT:u32 = 10;
@@ -25,6 +27,7 @@ pub const D_STR:u32 = 10;
 pub const D_ATT:u32 = 10;
 pub const D_DEF:u32 = 10;
 pub const D_BASE_MASS:f32 = 20.0;
+pub const D_MAX_HP:f32 = 50.0;
 
 
 
