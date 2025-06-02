@@ -7,7 +7,7 @@ pub struct Food {
 }
 
 impl Food {
-  fn new(pos:Vec2, mass:f32) -> Self {
+  pub fn new(pos:Vec2, mass:f32) -> Self {
     Food {pos,mass}
   }
   fn combine(&mut self, sacrifice:Self) {
@@ -16,5 +16,4 @@ impl Food {
     self.pos = (distance * split_percent) + self.pos;
     self.mass += sacrifice.mass;
   }
-  
 }

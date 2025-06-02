@@ -29,7 +29,8 @@ struct Ant {
 
 }
 /*
-caste:
+Ant {
+  caste:
   goal:
 
   loyalty: 
@@ -41,10 +42,7 @@ caste:
   mass:
 
   age: 0,
-
-  str: 
-  att: 
-  def: 
+}
    */
 
 trait Queen {
@@ -57,8 +55,8 @@ trait Queen {
 }
 trait Worker {
   fn new_worker(&self) -> Self;
-  fn pick_up_food();
-  fn drop_food();
+  fn drop_food(&mut self) -> Food;
+  fn pick_up_food(&mut self, food:&mut Food);
   fn w_emit_pher(&self) -> Pher;
 }
 trait Explorer {
@@ -82,12 +80,20 @@ impl Ant {
   fn move_forward(&mut self) {}
   fn turn_left(&mut self) {}
   fn turn_right(&mut self) {}
+
+  fn ant_behind(&self) -> Vec2 {
+    todo!()
+  }
+  fn ant_front(&self) -> Vec2 {
+    todo!()
+  }
   
-  fn convert_to_food(self) -> Food {
+  fn kill(self) -> Food {
     todo!()
   }
   fn check_should_die(&self) -> bool {
     todo!()
+    // age, hp, hunger?
   }
   fn draw(&self) {
     todo!()
@@ -129,7 +135,7 @@ impl Queen for Ant {
 
       // Alterable
       hp: Q_MAX_HP,
-      pos: self.pos,
+      pos: self.ant_behind(),
       vel:Vec2::ZERO,
       mass:Q_BASE_MASS,
 
@@ -149,7 +155,7 @@ impl Queen for Ant {
     self.mass += food_piece.mass;
   }
   fn q_emit_pher(&self) -> Pher {
-    Pher::new(self.pos, Goal::ToHome)
+    Pher::new(self.ant_behind(), Goal::ToHome)
   }
   fn q_heal(&mut self) {
     let damage = Q_MAX_HP - self.hp;
@@ -165,15 +171,37 @@ impl Queen for Ant {
   }
 }
 impl Worker for Ant {
-  fn new_worker(&self) -> Self {todo!();}
-  fn drop_food() {
-      todo!()
+  fn new_worker(&self) -> Self {
+    Ant {
+      caste:Caste::Worker,
+      goal:Goal::ToFood,
+
+      loyalty: self.loyalty,
+
+      // Alterable
+      hp: W_MAX_HP,
+      pos:self.ant_behind(),
+      vel:Vec2::ZERO,
+      mass:W_BASE_MASS,
+
+      age: 0,
+    }
   }
-  fn pick_up_food() {
-      todo!()
+  fn drop_food(&mut self) -> Food {
+    self.mass -= W_STR as f32;
+    Food::new(self.ant_front(), W_STR as f32)
+  }
+  fn pick_up_food(&mut self, food:&mut Food) {
+    let tbcarried = (W_STR as f32).min(food.mass);
+    food.mass -= tbcarried;
+    self.mass += tbcarried;
   }
   fn w_emit_pher(&self) -> Pher {
-      todo!()
+    match self.goal {
+      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
+      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
+      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+    }
   }
 }
 impl Explorer for Ant {
