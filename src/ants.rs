@@ -3,31 +3,62 @@ use crate::pher::{Pher,Goal};
 use crate::food::Food;
 use crate::consts::*;
 
-#[derive(Clone, Copy, Debug)]
-enum Caste {
-  Queen,
-  Soldier,
-  Worker,
-  Explorer,
-  Defender,
-}
-
 #[derive(Clone, Debug)]
-struct Ant {
-  pub caste:Caste, // Caste
-  pub goal:Goal, // Its current task, what its doing
-
-  loyalty:u32, // colony its part of
-
-  // Alterable
+struct Queen {
+  loyalty:u32,
   hp:f32, // health
   pos:Vec2, // pos
   vel:Vec2, // vel
-  mass:f32, // mass
+  mass:f32, // food stored
+  age:usize, // age
+}
+#[derive(Clone, Debug)]
+struct Worker {
+  loyalty:u32,
+  goal:Goal,
+  attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
+  pos:Vec2, // pos
+  vel:Vec2, // vel
+  mass:f32, // food held
 
   age:usize, // age
-
 }
+#[derive(Clone, Debug)]
+struct Explorer {
+  loyalty:u32,
+  goal:Goal,
+  attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
+  pos:Vec2, // pos
+  vel:Vec2, // vel
+  // mass:f32, // mass
+
+  age:usize, // age
+}
+#[derive(Clone, Debug)]
+struct Soldier {
+  loyalty:u32,
+  goal:Goal,
+  hp:f32, // health
+  pos:Vec2, // pos
+  vel:Vec2, // vel
+  // mass:f32, // mass
+
+  age:usize, // age
+}
+#[derive(Clone, Debug)]
+struct Defender {
+  loyalty:u32,
+  goal:Goal,
+  hp:f32, // health
+  pos:Vec2, // pos
+  vel:Vec2, // vel
+  // mass:f32, // mass
+
+  age:usize, // age
+}
+
+
+
 /*
 Ant {
   caste:
@@ -44,7 +75,7 @@ Ant {
   age: 0,
 }
    */
-
+/*
 trait Queen {
   fn first_queen(pos:Vec2,loyalty:u32) -> Self;
   fn new_queen(&self) -> Self;
@@ -74,42 +105,23 @@ trait Defender {
   fn d_heal();
   fn d_emit_pher(&self) -> Pher;
 }
+ */
 
+trait Ant {
+  fn move_forward(&mut self);
+  fn turn_left(&mut self);
+  fn turn_right(&mut self);
 
-impl Ant {
-  fn move_forward(&mut self) {}
-  fn turn_left(&mut self) {}
-  fn turn_right(&mut self) {}
-
-  fn ant_behind(&self) -> Vec2 {
-    todo!()
-  }
-  fn ant_front(&self) -> Vec2 {
-    todo!()
-  }
+  fn ant_behind(&self) -> Vec2;
+  fn ant_front(&self) -> Vec2;
   
-  fn kill(self) -> Food {
-    todo!()
-  }
-  fn check_should_die(&self) -> bool {
-    todo!()
-    // age, hp, hunger?
-  }
-  fn draw(&self) {
-    todo!()
-  }
-  fn emit_pher(&self) -> Pher {
-    match self.caste {
-      Caste::Defender => self.d_emit_pher(),
-      Caste::Queen => self.q_emit_pher(),
-      Caste::Explorer => self.e_emit_pher(),
-      Caste::Soldier => self.s_emit_pher(),
-      Caste::Worker => self.w_emit_pher(),
-    }
-  }
+  fn kill(self) -> Food;
+  fn check_should_die(&self) -> bool;
+  fn draw(&self);
+  fn emit_pher(&self) -> Pher;
 }
 
-impl Queen for Ant {
+impl Queen {
   fn first_queen(pos:Vec2,loyalty:u32) -> Self {
     Ant {
       caste:Caste::Queen,
@@ -170,7 +182,7 @@ impl Queen for Ant {
     self.mass = Q_MIN_MASS;
   }
 }
-impl Worker for Ant {
+impl Worker {
   fn new_worker(&self) -> Self {
     Ant {
       caste:Caste::Worker,
@@ -204,7 +216,7 @@ impl Worker for Ant {
     }
   }
 }
-impl Explorer for Ant {
+impl Explorer {
   fn new_explorer(&self) -> Self {
       todo!()
   }
@@ -215,7 +227,7 @@ impl Explorer for Ant {
       todo!()
   }
 }
-impl Soldier for Ant {
+impl Soldier {
   fn new_soldier(&self) -> Self {
       todo!()
   }
@@ -226,7 +238,7 @@ impl Soldier for Ant {
       todo!()
   }
 }
-impl Defender for Ant {
+impl Defender {
   fn new_defender(&self) -> Self {
       todo!()
   }

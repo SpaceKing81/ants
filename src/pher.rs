@@ -11,7 +11,8 @@ use glam::Vec2;
 pub enum Goal {
   ToHome,
   ToFood,
-  ToFight
+  ToFight,
+  Queen,
 }
 
 #[derive(Clone,
