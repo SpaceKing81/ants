@@ -19,6 +19,7 @@ pub const S_ATT:u32 = 10;
 pub const S_DEF:u32 = 10;
 pub const S_BASE_MASS:f32 = 20.0; // total mass is base mass + hp
 pub const S_MAX_HP:f32 = 40.0;
+pub const S_MAX_AGE:usize = 5000;
 
 pub const E_STR:u32 = 10;
 pub const E_ATT:u32 = 10;

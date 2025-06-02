@@ -150,7 +150,12 @@ impl Ant for Worker {
     }
   }
   fn emit_pher(&self) -> Pher {
-    todo!()
+    match self.goal {
+      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
+      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
+      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+      _ => panic!("Default cannot have anything else!!!")
+    }
   }
   fn check_should_die(&self) -> bool {
     self.age > W_MAX_AGE || self.attacked == (true, true)
@@ -228,7 +233,7 @@ impl Ant for Soldier {
     }
   }
   fn check_should_die(&self) -> bool {
-      todo!()
+    self.age >= S_MAX_AGE || self.hp == 0.0
   }
   fn draw(&self) {
       todo!()
