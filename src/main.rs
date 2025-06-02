@@ -1,6 +1,11 @@
-mod matrix;
+use crate::consts::*;
 use macroquad::prelude::*;
 
+mod matrix;
+mod ants;
+mod pher;
+mod food;
+mod consts;
 
 fn window_conf() -> Conf {
 
@@ -26,21 +31,26 @@ Plan:
     pos
     mass - amount
   }
+  - Pher type the is seprate and universal
+  - Fog of war? Hashmap of known positions for individual colonies
   - Don't need a colony? We will see how this goes
 */
 
 #[macroquad::main(window_conf)]
 async fn main() {
 
+  println!("Starting Simulation");
   loop {
-    //quit option
+    // 
     clear_background(Color::new(0.,0.,0.1,1.0));
+
     if is_key_down(KeyCode::Escape){
+      println!("Exiting Simulation");
       break;
     }
 
     if is_mouse_button_down(MouseButton::Left) {
-      //No clue whats in here
+      // No clue whats in here
     }
     
 
@@ -51,15 +61,18 @@ async fn main() {
       // Test something
       {
 
+
+
       }
       
-
       //Draw
       {
-        
-
-
-        draw_text(&format!("time: {}",get_time().round()), screen_width()-500., screen_height()-5., 18., LIGHTGRAY);
+        draw_text(&format!("time: {}",
+        get_time().round()), 
+        screen_width()-500., 
+        screen_height()-5.,
+        20., 
+        LIGHTGRAY);
       }
     }
         // */
