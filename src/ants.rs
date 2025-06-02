@@ -80,13 +80,9 @@ impl Queen {
       age: 0,
     }
   }
-  fn birth<A:Ant>(&self) -> A {
-    todo!()
-  }
   fn eat(&mut self, food_piece:Food) {
     self.mass += food_piece.mass;
   }
-  
   fn heal(&mut self) {
     let damage = Q_MAX_HP - self.hp;
     let enough_food_left = self.mass >= (Q_MIN_MASS+damage);
@@ -124,7 +120,7 @@ impl Ant for Queen {
       todo!()
   }
   fn kill(self) -> Food {
-      Food::new(self.pos, self.mass + Q_BASE_MASS)
+    Food::new(self.pos, self.mass + Q_BASE_MASS)
   }
 }
 impl Worker {
@@ -157,13 +153,13 @@ impl Ant for Worker {
     todo!()
   }
   fn check_should_die(&self) -> bool {
-      todo!()
+    self.age > W_MAX_AGE || self.attacked == (true, true)
   }
   fn draw(&self) {
       todo!()
   }
   fn kill(self) -> Food {
-      todo!()
+    Food::new(self.pos, self.mass + W_BASE_MASS)
   }
 
 }
@@ -191,17 +187,17 @@ impl Ant for Explorer {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
       Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
       Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
-      _ => panic!("Explorer cannot have anything else!!!")
+      _ => panic!("Default cannot have anything else!!!")
     }
   }
   fn check_should_die(&self) -> bool {
-      todo!()
+    self.age > E_MAX_AGE || self.attacked == (true, true)
   }
   fn draw(&self) {
       todo!()
   }
   fn kill(self) -> Food {
-      todo!()
+    Food::new(self.pos, E_BASE_MASS)
   }
 
 }
@@ -225,7 +221,11 @@ impl Ant for Soldier {
     }
   }
   fn emit_pher(&self) -> Pher {
-    todo!()
+    match self.goal {
+      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
+      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+      _ => panic!("Fighter cannot have anything else!!!")
+    }
   }
   fn check_should_die(&self) -> bool {
       todo!()
@@ -234,7 +234,7 @@ impl Ant for Soldier {
       todo!()
   }
   fn kill(self) -> Food {
-      todo!()
+    Food::new(self.pos, S_BASE_MASS + self.hp)
   }
 }
 impl Defender {
@@ -257,15 +257,19 @@ impl Ant for Defender {
     }
   }
   fn emit_pher(&self) -> Pher {
-    todo!()
+    match self.goal {
+      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToHome),
+      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+      _ => panic!("Def cannot have anything else!!!")
+    }
   }
   fn check_should_die(&self) -> bool {
-      todo!()
+    self.hp == 0.0
   }
   fn draw(&self) {
       todo!()
   }
   fn kill(self) -> Food {
-      todo!()
+    Food::new(self.pos, D_BASE_MASS)
   }
 }
