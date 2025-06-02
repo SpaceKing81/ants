@@ -32,3 +32,4 @@ pub const W_BASE_MASS:f32 = 20.0;
 // Pher Constants
 
 pub const SMALLEST_PHER_VALUE:f32 = 0.1;
+pub const PHER_FULL_STR:f32 = 10.0;

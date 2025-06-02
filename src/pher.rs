@@ -24,9 +24,9 @@ pub struct Pher {
 }
 
 impl Pher {
-  fn new(pos:Vec2, str:f32, goal:Goal) -> Self {
+  pub fn new(pos:Vec2, goal:Goal) -> Self {
     Pher {
-      str,
+      str:PHER_FULL_STR,
       pos,
       goal,
     }
@@ -38,7 +38,7 @@ impl Pher {
       goal:self.goal,
     }
   }
-  fn spread(&mut self) -> Option<Vec<Pher>> {
+  pub fn spread(&mut self) -> Option<Vec<Pher>> {
     let mut holder = Vec::new();
     if self.fade() {return None}
     for x in -1..1 {

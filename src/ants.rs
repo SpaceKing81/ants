@@ -149,7 +149,7 @@ impl Queen for Ant {
     self.mass += food_piece.mass;
   }
   fn q_emit_pher(&self) -> Pher {
-    todo!()
+    Pher::new(self.pos, Goal::ToHome)
   }
   fn q_heal(&mut self) {
     let damage = Q_MAX_HP - self.hp;
