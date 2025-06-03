@@ -53,10 +53,9 @@ struct Defender {
 
 trait Ant {
   fn new(queen:&Queen) -> Self;
-  fn move_forward(&mut self) {todo!()}
-  fn turn_left(&mut self) {todo!()}
-  fn turn_right(&mut self) {todo!()}
-
+  fn move_forward(&mut self);
+  fn get_turn_left(&self) -> Vec2 {todo!()}
+  fn get_turn_right(&self) -> Vec2 {todo!()}
   fn ant_behind(&self) -> Vec2 {todo!()}
   fn ant_front(&self) -> Vec2 {todo!()}
   
@@ -116,6 +115,9 @@ impl Ant for Queen {
   fn check_should_die(&self) -> bool {
     self.age > Q_MAX_AGE || self.hp <= 0.0
   }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
+  }
   fn draw(&self) {
       todo!()
   }
@@ -163,6 +165,9 @@ impl Ant for Worker {
   fn draw(&self) {
       todo!()
   }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
+  }
   fn kill(self) -> Food {
     Food::new(self.pos, self.mass + W_BASE_MASS)
   }
@@ -201,6 +206,9 @@ impl Ant for Explorer {
   fn draw(&self) {
       todo!()
   }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
+  }
   fn kill(self) -> Food {
     Food::new(self.pos, E_BASE_MASS)
   }
@@ -238,6 +246,9 @@ impl Ant for Soldier {
   fn draw(&self) {
       todo!()
   }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
+  }
   fn kill(self) -> Food {
     Food::new(self.pos, S_BASE_MASS + self.hp)
   }
@@ -273,6 +284,9 @@ impl Ant for Defender {
   }
   fn draw(&self) {
       todo!()
+  }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
   }
   fn kill(self) -> Food {
     Food::new(self.pos, D_BASE_MASS)
