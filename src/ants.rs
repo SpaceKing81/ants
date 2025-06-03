@@ -3,60 +3,65 @@ use glam::Vec2;
 use crate::pher::{Pher,Goal};
 use crate::food::Food;
 use crate::consts::*;
-
-#[derive(Clone, Debug)]
-struct Queen {
+#[derive(Clone, Copy, Debug)]
+struct Antdata {
   loyalty:u32,
-  hp:f32, // health
   pos:Vec2, // pos
   vel:Vec2, // vel
-  mass:f32, // food stored
   age:usize, // age
+}
+#[derive(Clone, Debug)]
+struct Queen {
+  data:Antdata,
+  hp:f32, // health
+  mass:f32, // food stored
 }
 #[derive(Clone, Debug)]
 struct Worker {
-  loyalty:u32,
+  data:Antdata,
   goal:Goal,
   attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
-  pos:Vec2, // pos
-  vel:Vec2, // vel
   mass:f32, // food held
-  age:usize, // age
 }
 #[derive(Clone, Debug)]
 struct Explorer {
-  loyalty:u32,
+  data:Antdata,
   goal:Goal,
   attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
-  pos:Vec2, // pos
-  vel:Vec2, // vel
-  age:usize, // age
 }
 #[derive(Clone, Debug)]
 struct Soldier {
-  loyalty:u32,
+  data:Antdata,
   goal:Goal,
   hp:f32, // health
-  pos:Vec2, // pos
-  vel:Vec2, // vel
-  age:usize, // age
 }
 #[derive(Clone, Debug)]
 struct Defender {
-  loyalty:u32,
+  data:Antdata,
   goal:Goal,
   hp:f32, // health
-  pos:Vec2, // pos
-  vel:Vec2, // vel
-  age:usize, // age
 }
 
 trait Ant {
   fn new(queen:&Queen) -> Self;
-  fn move_forward(&mut self);
 
-  fn get_left_turn(&self) -> Vec2 {todo!()}
-  fn get_right_turn(&self) -> Vec2 {todo!()}
+  fn move_forward(&mut self) {
+    self.get_data_mut().pos += self.get_data_mut().vel;
+  }
+  fn get_left_turn(&mut self) {
+    // get direction of motion
+    let dir = self.get_data().vel.normalize_or_zero();
+    let len = self.get_data().vel.length();
+    let theta = dir.x.acos() + std::f32::consts::FRAC_PI_6;
+    self.get_data_mut().vel = Vec2::new(theta.cos(), theta.sin()) * len;
+  }
+  fn turn_right(&mut self) {
+    // get direction of motion
+    let dir = self.get_data().vel.normalize_or_zero();
+    let len = self.get_data().vel.length();
+    let theta = dir.x.acos() - std::f32::consts::FRAC_PI_6;
+    self.get_data_mut().vel = Vec2::new(theta.cos(), theta.sin()) * len;
+  }
   fn ant_behind(&self) -> Vec2 {
     let (pos,mut vel) = self.get_pos_vel();
     if vel.round() == Vec2::ZERO {vel = Vec2::new(1.0, 1.0)}
@@ -75,7 +80,8 @@ trait Ant {
   fn draw(&self);
   fn emit_pher(&self) -> Pher;
 
-  fn get_pos_vel(&self) -> (Vec2,Vec2);
+  fn get_data(&self) -> &Antdata;
+  fn get_data_mut(&mut self) -> &mut Antdata;
   fn radius(&self) -> f32;
 }
 
@@ -123,8 +129,11 @@ impl Ant for Queen {
       age: 0,
     }
   }
-  fn get_pos_vel(&self) -> (Vec2,Vec2) {
-    (self.pos,self.vel)
+  fn get_data(&self) -> &Antdata {
+      todo!()
+  }
+  fn get_data_mut(&mut self) -> &mut Antdata {
+      todo!()
   }
   
   fn emit_pher(&self) -> Pher {
@@ -135,9 +144,6 @@ impl Ant for Queen {
   }
   fn draw(&self) {
       todo!()
-  }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
   }
   fn kill(self) -> Food {
     Food::new(self.pos, self.mass + Q_BASE_MASS)
@@ -173,8 +179,11 @@ impl Ant for Worker {
       age: 0,
     }
   }
-  fn get_pos_vel(&self) -> (Vec2,Vec2) {
-    (self.pos,self.vel)
+  fn get_data(&self) -> &Antdata {
+      todo!()
+  }
+  fn get_data_mut(&mut self) -> &mut Antdata {
+      todo!()
   }
 
   fn emit_pher(&self) -> Pher {
@@ -191,9 +200,7 @@ impl Ant for Worker {
   fn draw(&self) {
       todo!()
   }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
-  }
+  
   fn kill(self) -> Food {
     Food::new(self.pos, self.mass + W_BASE_MASS)
   }
@@ -220,8 +227,11 @@ impl Ant for Explorer {
       age: 0,
     }
   }
-  fn get_pos_vel(&self) -> (Vec2,Vec2) {
-    (self.pos,self.vel)
+  fn get_data(&self) -> &Antdata {
+      todo!()
+  }
+  fn get_data_mut(&mut self) -> &mut Antdata {
+      todo!()
   }
 
   fn emit_pher(&self) -> Pher {
@@ -238,9 +248,7 @@ impl Ant for Explorer {
   fn draw(&self) {
       todo!()
   }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
-  }
+  
   fn kill(self) -> Food {
     Food::new(self.pos, E_BASE_MASS)
   }
@@ -267,8 +275,11 @@ impl Ant for Soldier {
       age: 0,
     }
   }
-  fn get_pos_vel(&self) -> (Vec2,Vec2) {
-    (self.pos,self.vel)
+  fn get_data(&self) -> &Antdata {
+      todo!()
+  }
+  fn get_data_mut(&mut self) -> &mut Antdata {
+      todo!()
   }
   
   fn emit_pher(&self) -> Pher {
@@ -284,9 +295,7 @@ impl Ant for Soldier {
   fn draw(&self) {
       todo!()
   }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
-  }
+  
   fn kill(self) -> Food {
     Food::new(self.pos, S_BASE_MASS + self.hp)
   }
@@ -313,8 +322,11 @@ impl Ant for Defender {
       age: 0,
     }
   }
-  fn get_pos_vel(&self) -> (Vec2,Vec2) {
-    (self.pos,self.vel)
+  fn get_data(&self) -> &Antdata {
+      todo!()
+  }
+  fn get_data_mut(&mut self) -> &mut Antdata {
+      todo!()
   }
   
   fn emit_pher(&self) -> Pher {
@@ -330,9 +342,7 @@ impl Ant for Defender {
   fn draw(&self) {
       todo!()
   }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
-  }
+  
   fn kill(self) -> Food {
     Food::new(self.pos, D_BASE_MASS)
   }
