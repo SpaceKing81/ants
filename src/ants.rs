@@ -46,7 +46,8 @@ trait Ant {
   fn new(queen:&Queen) -> Self;
 
   fn move_forward(&mut self) {
-    self.get_data_mut().pos += self.get_data_mut().vel;
+    let vel = self.get_data().vel;
+    self.get_data_mut().pos += vel;
   }
   fn get_left_turn(&mut self) {
     // get direction of motion
@@ -63,16 +64,16 @@ trait Ant {
     self.get_data_mut().vel = Vec2::new(theta.cos(), theta.sin()) * len;
   }
   fn ant_behind(&self) -> Vec2 {
-    let (pos,mut vel) = self.get_pos_vel();
-    if vel.round() == Vec2::ZERO {vel = Vec2::new(1.0, 1.0)}
+    let data = self.get_data();
+    let vel = if data.vel.round() == Vec2::ZERO {Vec2::new(1.0, 1.0)} else {data.vel};
     let size = vel.normalize() * self.radius();
-    pos - size // The direction normalized and then grown to the radius, and then placed at the position of the ant
+    data.pos - size // The direction normalized and then grown to the radius, and then placed at the position of the ant
   }
   fn ant_front(&self) -> Vec2 {
-    let (pos,mut vel) = self.get_pos_vel();
-    if vel.round() == Vec2::ZERO {vel = Vec2::new(1.0, 1.0)}
+    let data = self.get_data();
+    let vel = if data.vel.round() == Vec2::ZERO {Vec2::new(1.0, 1.0)} else {data.vel};
     let size = vel.normalize() * self.radius();
-    pos + size // The direction normalized and then grown to the radius, and then placed at the position of the ant
+    data.pos + size // The direction normalized and then grown to the radius, and then placed at the position of the ant
   }
   
   fn kill(self) -> Food;
@@ -85,18 +86,18 @@ trait Ant {
   fn radius(&self) -> f32;
 }
 
+
+// ---------
+
+
 impl Queen {
   fn first_queen(pos:Vec2,loyalty:u32) -> Self {
+    let data = Antdata::new(loyalty, pos, Vec2::ZERO);
     Self {
-      loyalty,
-
+      data,
       // Alterable
       hp: Q_MAX_HP,
-      pos,
-      vel:Vec2::ZERO,
       mass:Q_BASE_MASS,
-
-      age: 0,
     }
   }
   fn eat(&mut self, food_piece:Food) {
@@ -117,16 +118,12 @@ impl Queen {
 }
 impl Ant for Queen {
   fn new(queen:&Queen) -> Self {
+    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Queen {
-      loyalty: queen.loyalty,
-
-      // Alterable
+      data,
+      // Personal
       hp: Q_MAX_HP,
-      pos: queen.ant_behind(),
-      vel:Vec2::ZERO,
       mass:Q_BASE_MASS,
-
-      age: 0,
     }
   }
   fn get_data(&self) -> &Antdata {
@@ -140,19 +137,22 @@ impl Ant for Queen {
     Pher::new(self.ant_behind(), Goal::Queen)
   }
   fn check_should_die(&self) -> bool {
-    self.age > Q_MAX_AGE || self.hp <= 0.0
+    self.data.age > Q_MAX_AGE || self.hp <= 0.0
   }
   fn draw(&self) {
       todo!()
   }
   fn kill(self) -> Food {
-    Food::new(self.pos, self.mass + Q_BASE_MASS)
+    Food::new(self.data.pos, self.mass + Q_BASE_MASS)
   }
   fn radius(&self) -> f32 {
     (Q_BASE_MASS + self.mass + self.hp)/Q_SIZE_DIVIDER
   }
 
 }
+
+//---
+
 impl Worker {
   fn drop_food(&mut self) -> Food {
     self.mass -= W_STR as f32;
@@ -166,17 +166,13 @@ impl Worker {
 }
 impl Ant for Worker { 
   fn new(queen:&Queen) -> Self {
-    Worker {
-      loyalty: queen.loyalty,
+    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    Self {
+      data,
+      // Personal
       goal:Goal::ToFood,
-
-      // Alterable
       attacked: (false,false),
-      pos: queen.ant_behind(),
-      vel:Vec2::ZERO,
       mass:Q_BASE_MASS,
-
-      age: 0,
     }
   }
   fn get_data(&self) -> &Antdata {
@@ -195,19 +191,22 @@ impl Ant for Worker {
     }
   }
   fn check_should_die(&self) -> bool {
-    self.age > W_MAX_AGE || self.attacked == (true, true)
+    self.data.age > W_MAX_AGE || self.attacked == (true, true)
   }
   fn draw(&self) {
       todo!()
   }
   
   fn kill(self) -> Food {
-    Food::new(self.pos, self.mass + W_BASE_MASS)
+    Food::new(self.data.pos, self.mass + W_BASE_MASS)
   }
   fn radius(&self) -> f32 {
     (W_BASE_MASS + self.mass)/W_SIZE_DIVIDER
   }
 }
+
+//---
+
 impl Explorer {
   fn expand_map() {
       todo!()
@@ -215,16 +214,12 @@ impl Explorer {
 }
 impl Ant for Explorer {
   fn new(queen:&Queen) -> Self {
+    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
-      goal:Goal::ToFood,
-      loyalty: queen.loyalty,
-
+      data,
       // Alterable
+      goal:Goal::ToFood,
       attacked:(false,false),
-      pos: queen.ant_behind(),
-      vel:Vec2::ZERO,
-
-      age: 0,
     }
   }
   fn get_data(&self) -> &Antdata {
@@ -243,19 +238,22 @@ impl Ant for Explorer {
     }
   }
   fn check_should_die(&self) -> bool {
-    self.age > E_MAX_AGE || self.attacked == (true, true)
+    self.data.age > E_MAX_AGE || self.attacked == (true, true)
   }
   fn draw(&self) {
       todo!()
   }
   
   fn kill(self) -> Food {
-    Food::new(self.pos, E_BASE_MASS)
+    Food::new(self.data.pos, E_BASE_MASS)
   }
   fn radius(&self) -> f32 {
     E_BASE_MASS/E_SIZE_DIVIDER
   }
 }
+
+//---
+
 impl Soldier {
   fn attack() {
       todo!()
@@ -263,16 +261,12 @@ impl Soldier {
 }
 impl Ant for Soldier {
   fn new(queen:&Queen) -> Self {
+    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
+      data,
       goal: Goal::ToFood,
-      loyalty: queen.loyalty,
-
       // Alterable
       hp: S_MAX_HP,
-      pos: queen.ant_behind(),
-      vel: Vec2::ZERO,
-
-      age: 0,
     }
   }
   fn get_data(&self) -> &Antdata {
@@ -290,19 +284,22 @@ impl Ant for Soldier {
     }
   }
   fn check_should_die(&self) -> bool {
-    self.age >= S_MAX_AGE || self.hp == 0.0
+    self.data.age >= S_MAX_AGE || self.hp == 0.0
   }
   fn draw(&self) {
       todo!()
   }
   
   fn kill(self) -> Food {
-    Food::new(self.pos, S_BASE_MASS + self.hp)
+    Food::new(self.data.pos, S_BASE_MASS + self.hp)
   }
   fn radius(&self) -> f32 {
     (S_BASE_MASS + self.hp)/S_SIZE_DIVIDER
   }
 }
+
+//---
+
 impl Defender {
   fn heal() {
       todo!()
@@ -310,16 +307,12 @@ impl Defender {
 }
 impl Ant for Defender { 
   fn new(queen:&Queen) -> Self {
+    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
+      data,
       goal:Goal::ToHome,
-      loyalty: queen.loyalty,
-
       // Alterable
       hp: D_MAX_HP,
-      pos: queen.ant_behind(),
-      vel:Vec2::ZERO,
-
-      age: 0,
     }
   }
   fn get_data(&self) -> &Antdata {
@@ -344,12 +337,21 @@ impl Ant for Defender {
   }
   
   fn kill(self) -> Food {
-    Food::new(self.pos, D_BASE_MASS)
+    Food::new(self.data.pos, D_BASE_MASS)
   }
   fn radius(&self) -> f32 {
-    (D_BASE_MASS + D_MAX_AGE as f32 + self.hp)/(D_SIZE_DIVIDER + self.age as f32)
+    (D_BASE_MASS + D_MAX_AGE as f32 + self.hp)/(D_SIZE_DIVIDER + self.data.age as f32)
   }
 }
 
-// Helper functions
-fn helper() {}
+
+impl Antdata {
+  fn new(loyalty:u32, pos:Vec2, vel:Vec2) -> Self {
+    Self {
+      loyalty,
+      pos,
+      vel,
+      age:0,
+    }
+  }
+}
