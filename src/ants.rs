@@ -54,15 +54,29 @@ struct Defender {
 trait Ant {
   fn new(queen:&Queen) -> Self;
   fn move_forward(&mut self);
-  fn get_turn_left(&self) -> Vec2 {todo!()}
-  fn get_turn_right(&self) -> Vec2 {todo!()}
-  fn ant_behind(&self) -> Vec2 {todo!()}
-  fn ant_front(&self) -> Vec2 {todo!()}
+
+  fn get_left_turn(&self) -> Vec2 {todo!()}
+  fn get_right_turn(&self) -> Vec2 {todo!()}
+  fn ant_behind(&self) -> Vec2 {
+    let (pos,mut vel) = self.get_pos_vel();
+    if vel.round() == Vec2::ZERO {vel = Vec2::new(1.0, 1.0)}
+    let size = vel.normalize() * self.radius();
+    pos - size // The direction normalized and then grown to the radius, and then placed at the position of the ant
+  }
+  fn ant_front(&self) -> Vec2 {
+    let (pos,mut vel) = self.get_pos_vel();
+    if vel.round() == Vec2::ZERO {vel = Vec2::new(1.0, 1.0)}
+    let size = vel.normalize() * self.radius();
+    pos + size // The direction normalized and then grown to the radius, and then placed at the position of the ant
+  }
   
   fn kill(self) -> Food;
   fn check_should_die(&self) -> bool;
   fn draw(&self);
   fn emit_pher(&self) -> Pher;
+
+  fn get_pos_vel(&self) -> (Vec2,Vec2);
+  fn radius(&self) -> f32;
 }
 
 impl Queen {
@@ -109,21 +123,29 @@ impl Ant for Queen {
       age: 0,
     }
   }
+  fn get_pos_vel(&self) -> (Vec2,Vec2) {
+    (self.pos,self.vel)
+  }
+  
   fn emit_pher(&self) -> Pher {
     Pher::new(self.ant_behind(), Goal::Queen)
   }
   fn check_should_die(&self) -> bool {
     self.age > Q_MAX_AGE || self.hp <= 0.0
   }
-  fn move_forward(&mut self) {
-    self.pos += self.vel;
-  }
   fn draw(&self) {
       todo!()
+  }
+  fn move_forward(&mut self) {
+    self.pos += self.vel;
   }
   fn kill(self) -> Food {
     Food::new(self.pos, self.mass + Q_BASE_MASS)
   }
+  fn radius(&self) -> f32 {
+    (Q_BASE_MASS + self.mass + self.hp)/Q_SIZE_DIVIDER
+  }
+
 }
 impl Worker {
   fn drop_food(&mut self) -> Food {
@@ -151,6 +173,10 @@ impl Ant for Worker {
       age: 0,
     }
   }
+  fn get_pos_vel(&self) -> (Vec2,Vec2) {
+    (self.pos,self.vel)
+  }
+
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -171,7 +197,9 @@ impl Ant for Worker {
   fn kill(self) -> Food {
     Food::new(self.pos, self.mass + W_BASE_MASS)
   }
-
+  fn radius(&self) -> f32 {
+    (W_BASE_MASS + self.mass)/W_SIZE_DIVIDER
+  }
 }
 impl Explorer {
   fn expand_map() {
@@ -192,6 +220,10 @@ impl Ant for Explorer {
       age: 0,
     }
   }
+  fn get_pos_vel(&self) -> (Vec2,Vec2) {
+    (self.pos,self.vel)
+  }
+
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -212,7 +244,9 @@ impl Ant for Explorer {
   fn kill(self) -> Food {
     Food::new(self.pos, E_BASE_MASS)
   }
-
+  fn radius(&self) -> f32 {
+    E_BASE_MASS/E_SIZE_DIVIDER
+  }
 }
 impl Soldier {
   fn attack() {
@@ -233,6 +267,10 @@ impl Ant for Soldier {
       age: 0,
     }
   }
+  fn get_pos_vel(&self) -> (Vec2,Vec2) {
+    (self.pos,self.vel)
+  }
+  
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -251,6 +289,9 @@ impl Ant for Soldier {
   }
   fn kill(self) -> Food {
     Food::new(self.pos, S_BASE_MASS + self.hp)
+  }
+  fn radius(&self) -> f32 {
+    (S_BASE_MASS + self.hp)/S_SIZE_DIVIDER
   }
 }
 impl Defender {
@@ -272,6 +313,10 @@ impl Ant for Defender {
       age: 0,
     }
   }
+  fn get_pos_vel(&self) -> (Vec2,Vec2) {
+    (self.pos,self.vel)
+  }
+  
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -291,4 +336,10 @@ impl Ant for Defender {
   fn kill(self) -> Food {
     Food::new(self.pos, D_BASE_MASS)
   }
+  fn radius(&self) -> f32 {
+    (D_BASE_MASS + D_MAX_AGE as f32 + self.hp)/(D_SIZE_DIVIDER + self.age as f32)
+  }
 }
+
+// Helper functions
+fn helper() {}
