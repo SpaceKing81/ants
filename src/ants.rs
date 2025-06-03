@@ -209,7 +209,7 @@ impl Ant for Worker {
 
 impl Explorer {
   fn expand_map() {
-      todo!()
+    todo!()
   }
 }
 impl Ant for Explorer {
