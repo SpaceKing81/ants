@@ -3,8 +3,16 @@ use glam::Vec2;
 use crate::pher::{Pher,Goal};
 use crate::food::Food;
 use crate::consts::*;
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Cst {
+  Q,W,
+  E,S,
+  D,
+}
+
 #[derive(Clone, Copy, Debug)]
 struct Antdata {
+  caste:Cst,
   loyalty:u32,
   pos:Vec2, // pos
   vel:Vec2, // vel
@@ -34,12 +42,14 @@ struct Soldier {
   data:Antdata,
   goal:Goal,
   hp:f32, // health
+  dmg:f32, // damage accumulated that round
 }
 #[derive(Clone, Debug)]
 struct Defender {
   data:Antdata,
   goal:Goal,
   hp:f32, // health
+  dmg:f32, // damage acumulated that round
 }
 
 trait Ant {
@@ -77,6 +87,7 @@ trait Ant {
   }
   
   fn kill(self) -> Food;
+  fn attacked(&mut self, caste:Cst);
   fn check_should_die(&self) -> bool;
   fn draw(&self);
   fn emit_pher(&self) -> Pher;
@@ -92,7 +103,7 @@ trait Ant {
 
 impl Queen {
   fn first_queen(pos:Vec2,loyalty:u32) -> Self {
-    let data = Antdata::new(loyalty, pos, Vec2::ZERO);
+    let data = Antdata::new(Cst::Q, loyalty, pos, Vec2::ZERO);
     Self {
       data,
       // Alterable
@@ -118,7 +129,7 @@ impl Queen {
 }
 impl Ant for Queen {
   fn new(queen:&Queen) -> Self {
-    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    let data = Antdata::new(Cst::Q, queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Queen {
       data,
       // Personal
@@ -127,12 +138,21 @@ impl Ant for Queen {
     }
   }
   fn get_data(&self) -> &Antdata {
-      todo!()
+    &self.data
   }
   fn get_data_mut(&mut self) -> &mut Antdata {
-      todo!()
+    &mut self.data
   }
-  
+  fn attacked(&mut self, caste:Cst) {
+    // reduce hp based on attack
+    let att = match caste {
+      Cst::S => S_ATT,
+      Cst::D => D_ATT,
+      Cst::W => W_ATT,
+      _=> panic!("Cannot attack, shouldn't be possible up!!")
+    };
+    self.hp -= att;
+  }
   fn emit_pher(&self) -> Pher {
     Pher::new(self.ant_behind(), Goal::Queen)
   }
@@ -166,7 +186,7 @@ impl Worker {
 }
 impl Ant for Worker { 
   fn new(queen:&Queen) -> Self {
-    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    let data = Antdata::new(Cst::W, queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
       data,
       // Personal
@@ -176,10 +196,17 @@ impl Ant for Worker {
     }
   }
   fn get_data(&self) -> &Antdata {
-      todo!()
+    &self.data
   }
   fn get_data_mut(&mut self) -> &mut Antdata {
-      todo!()
+    &mut self.data
+  }
+  fn attacked(&mut self, caste:Cst) {
+    // increase damage based on attacker
+    match caste {
+      Cst::S => self.attacked = (true,true),
+      _ => if self.attacked == (false,false) {self.attacked = (true,false)} else {self.attacked = (true,true)},
+    }
   }
 
   fn emit_pher(&self) -> Pher {
@@ -214,7 +241,7 @@ impl Explorer {
 }
 impl Ant for Explorer {
   fn new(queen:&Queen) -> Self {
-    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    let data = Antdata::new(Cst::E, queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
       data,
       // Alterable
@@ -223,10 +250,17 @@ impl Ant for Explorer {
     }
   }
   fn get_data(&self) -> &Antdata {
-      todo!()
+    &self.data
+  }
+  fn attacked(&mut self, caste:Cst) {
+    // increase damage based on attacker
+    match caste {
+      Cst::S => self.attacked = (true,true),
+      _ => if self.attacked == (false,false) {self.attacked = (true,false)} else {self.attacked = (true,true)},
+    }
   }
   fn get_data_mut(&mut self) -> &mut Antdata {
-      todo!()
+    &mut self.data
   }
 
   fn emit_pher(&self) -> Pher {
@@ -255,27 +289,37 @@ impl Ant for Explorer {
 //---
 
 impl Soldier {
-  fn attack() {
-      todo!()
+  fn attack<A:Ant>(ant:&mut A) {
+    ant.attacked(Cst::S);
   }
 }
 impl Ant for Soldier {
   fn new(queen:&Queen) -> Self {
-    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    let data = Antdata::new(Cst::S, queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
       data,
       goal: Goal::ToFood,
       // Alterable
       hp: S_MAX_HP,
+      dmg:0.0
     }
   }
   fn get_data(&self) -> &Antdata {
-      todo!()
+    &self.data
   }
   fn get_data_mut(&mut self) -> &mut Antdata {
-      todo!()
+    &mut self.data
   }
-  
+  fn attacked(&mut self, caste:Cst) {
+    // increase damage based on attacker
+    let att = match caste {
+      Cst::S => S_ATT,
+      Cst::D => D_ATT,
+      Cst::W => W_ATT,
+      _=> panic!("Cannot attack, shouldn't be possible up!!")
+    };
+    self.dmg += att;
+  }
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -307,21 +351,31 @@ impl Defender {
 }
 impl Ant for Defender { 
   fn new(queen:&Queen) -> Self {
-    let data = Antdata::new(queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
+    let data = Antdata::new(Cst::D, queen.data.loyalty, queen.ant_behind(), Vec2::ZERO);
     Self {
       data,
       goal:Goal::ToHome,
       // Alterable
       hp: D_MAX_HP,
+      dmg:0.0
     }
   }
   fn get_data(&self) -> &Antdata {
-      todo!()
+    &self.data
   }
   fn get_data_mut(&mut self) -> &mut Antdata {
-      todo!()
+      &mut self.data
   }
-  
+  fn attacked(&mut self, caste:Cst) {
+    // increase damage based on attacker
+    let att = match caste {
+      Cst::S => S_ATT,
+      Cst::D => D_ATT,
+      Cst::W => W_ATT,
+      _=> panic!("Cannot attack, shouldn't be possible up!!")
+    };
+    self.dmg += att;
+  }
   fn emit_pher(&self) -> Pher {
     match self.goal {
       Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToHome),
@@ -346,8 +400,9 @@ impl Ant for Defender {
 
 
 impl Antdata {
-  fn new(loyalty:u32, pos:Vec2, vel:Vec2) -> Self {
+  fn new(caste:Cst,loyalty:u32, pos:Vec2, vel:Vec2) -> Self {
     Self {
+      caste,
       loyalty,
       pos,
       vel,
