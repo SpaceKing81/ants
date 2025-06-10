@@ -183,6 +183,9 @@ impl Worker {
     food.mass -= tbcarried;
     self.mass += tbcarried;
   }
+  fn attack<A:Ant>(ant:&mut A) {
+    ant.attacked(Cst::W);
+  }
 }
 impl Ant for Worker { 
   fn new(queen:&Queen) -> Self {
@@ -348,6 +351,9 @@ impl Defender {
   fn heal() {
       todo!()
   }
+  fn attack<A:Ant>(ant:&mut A) {
+    ant.attacked(Cst::D);
+  }
 }
 impl Ant for Defender { 
   fn new(queen:&Queen) -> Self {
@@ -389,7 +395,6 @@ impl Ant for Defender {
   fn draw(&self) {
       todo!()
   }
-  
   fn kill(self) -> Food {
     Food::new(self.data.pos, D_BASE_MASS)
   }
