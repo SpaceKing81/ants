@@ -1,4 +1,4 @@
-struct Matrix<T> {
+pub struct Matrix<T> {
   data:Vec<T>, // either white or black
   cols:usize,
   rows:usize,

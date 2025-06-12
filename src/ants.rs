@@ -1,6 +1,6 @@
 
 use glam::Vec2;
-use crate::pher::{Pher,Goal};
+use crate::pher::{PherMap,Goal};
 use crate::food::Food;
 use crate::consts::*;
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -90,7 +90,7 @@ trait Ant {
   fn attacked(&mut self, caste:Cst);
   fn check_should_die(&self) -> bool;
   fn draw(&self);
-  fn emit_pher(&self) -> Pher;
+  fn place_pher(&self);
 
   fn get_data(&self) -> &Antdata;
   fn get_data_mut(&mut self) -> &mut Antdata;
@@ -153,7 +153,7 @@ impl Ant for Queen {
     };
     self.hp -= att;
   }
-  fn emit_pher(&self) -> Pher {
+  fn place_pher(&self) {
     Pher::new(self.ant_behind(), Goal::Queen)
   }
   fn check_should_die(&self) -> bool {
@@ -212,7 +212,7 @@ impl Ant for Worker {
     }
   }
 
-  fn emit_pher(&self) -> Pher {
+  fn place_pher(&self) {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
       Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
@@ -266,7 +266,7 @@ impl Ant for Explorer {
     &mut self.data
   }
 
-  fn emit_pher(&self) -> Pher {
+  fn place_pher(&self) {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
       Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
@@ -323,7 +323,7 @@ impl Ant for Soldier {
     };
     self.dmg += att;
   }
-  fn emit_pher(&self) -> Pher {
+  fn place_pher(&self) {
     match self.goal {
       Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
       Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
@@ -382,10 +382,10 @@ impl Ant for Defender {
     };
     self.dmg += att;
   }
-  fn emit_pher(&self) -> Pher {
+  fn place_pher(&self) {
     match self.goal {
-      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToHome),
-      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+      Goal::ToHome => PherMap::add(self.ant_behind(), Goal::ToHome),
+      Goal::ToFight => PherMap::add(self.ant_behind(), Goal::ToFight),
       _ => panic!("Def cannot have anything else!!!")
     }
   }

@@ -26,6 +26,7 @@ fn window_conf() -> Conf {
 /*
 
 Plan:
+  - World
   - Ant trait, implemented by the 5 different ant types: Queen, Soldier, Worker, Explorer, Defender
   - A Food type, contains {
     pos
