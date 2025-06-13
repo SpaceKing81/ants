@@ -90,7 +90,7 @@ trait Ant {
   fn attacked(&mut self, caste:Cst);
   fn check_should_die(&self) -> bool;
   fn draw(&self);
-  fn place_pher(&self);
+  fn place_pher(&self, map:&mut PherMap);
 
   fn get_data(&self) -> &Antdata;
   fn get_data_mut(&mut self) -> &mut Antdata;
@@ -153,8 +153,11 @@ impl Ant for Queen {
     };
     self.hp -= att;
   }
-  fn place_pher(&self) {
-    Pher::new(self.ant_behind(), Goal::Queen)
+  fn place_pher(&self, map:&mut PherMap) {
+    PherMap::add(
+      map, 
+      (Goal::Queen, self.get_data().loyalty), 
+      (self.ant_behind().floor().x as usize, self.ant_behind().floor().y as usize));
   }
   fn check_should_die(&self) -> bool {
     self.data.age > Q_MAX_AGE || self.hp <= 0.0
@@ -212,13 +215,16 @@ impl Ant for Worker {
     }
   }
 
-  fn place_pher(&self) {
-    match self.goal {
-      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
-      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
-      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+  fn place_pher(&self, map:&mut PherMap) {
+    let rowcol = (self.ant_behind().floor().x as usize, self.ant_behind().floor().y as usize);
+    let loyalty  = self.get_data().loyalty;
+    let goal = match self.goal {
+      Goal::ToFood => Goal::ToHome,
+      Goal::ToHome => Goal::ToFood,
+      Goal::ToFight => Goal::ToFight,
       _ => panic!("Default cannot have anything else!!!")
-    }
+    };
+    map.add((goal, loyalty), rowcol);
   }
   fn check_should_die(&self) -> bool {
     self.data.age > W_MAX_AGE || self.attacked == (true, true)
@@ -266,13 +272,16 @@ impl Ant for Explorer {
     &mut self.data
   }
 
-  fn place_pher(&self) {
-    match self.goal {
-      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
-      Goal::ToHome => Pher::new(self.ant_behind(), Goal::ToFood),
-      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+  fn place_pher(&self, map:&mut PherMap) {
+    let rowcol = (self.ant_behind().floor().x as usize, self.ant_behind().floor().y as usize);
+    let loyalty  = self.get_data().loyalty;
+    let goal = match self.goal {
+      Goal::ToFood => Goal::ToHome,
+      Goal::ToHome => Goal::ToFood,
+      Goal::ToFight => Goal::ToFight,
       _ => panic!("Default cannot have anything else!!!")
-    }
+    };
+    map.add((goal, loyalty), rowcol);
   }
   fn check_should_die(&self) -> bool {
     self.data.age > E_MAX_AGE || self.attacked == (true, true)
@@ -323,12 +332,15 @@ impl Ant for Soldier {
     };
     self.dmg += att;
   }
-  fn place_pher(&self) {
-    match self.goal {
-      Goal::ToFood => Pher::new(self.ant_behind(), Goal::ToHome),
-      Goal::ToFight => Pher::new(self.ant_behind(), Goal::ToFight),
+  fn place_pher(&self, map:&mut PherMap) {
+    let rowcol = (self.ant_behind().floor().x as usize, self.ant_behind().floor().y as usize);
+    let loyalty  = self.get_data().loyalty;
+    let goal = match self.goal {
+      Goal::ToFood => Goal::ToHome,
+      Goal::ToFight => Goal::ToFight,
       _ => panic!("Fighter cannot have anything else!!!")
-    }
+    };
+    map.add((goal, loyalty), rowcol);
   }
   fn check_should_die(&self) -> bool {
     self.data.age >= S_MAX_AGE || self.hp == 0.0
@@ -382,12 +394,15 @@ impl Ant for Defender {
     };
     self.dmg += att;
   }
-  fn place_pher(&self) {
-    match self.goal {
-      Goal::ToHome => PherMap::add(self.ant_behind(), Goal::ToHome),
-      Goal::ToFight => PherMap::add(self.ant_behind(), Goal::ToFight),
+  fn place_pher(&self, map:&mut PherMap) {
+    let rowcol = (self.ant_behind().floor().x as usize, self.ant_behind().floor().y as usize);
+    let loyalty  = self.get_data().loyalty;
+    let goal = match self.goal {
+      Goal::ToHome => Goal::ToHome,
+      Goal::ToFight => Goal::ToFight,
       _ => panic!("Def cannot have anything else!!!")
-    }
+    };
+    map.add((goal, loyalty), rowcol);
   }
   fn check_should_die(&self) -> bool {
     self.hp == 0.0

@@ -1,8 +1,6 @@
 
 use std::collections::HashMap;
-
 use crate::consts::*;
-use glam::Vec2;
 
 // The type of pher that gets dropped:
 // Ants goal tofood -> follow tofood to food, emit tohome
@@ -25,20 +23,6 @@ pub enum Goal {
 pub struct PherMap {
   map:HashMap<(usize,usize), HashMap<(Goal,u32),f32>>
 }
-  // fn new_from(&self) -> Self {
-  //   Pher {
-  //     str:self.str,
-  //   }
-  // }
-  
-  // fn fade(&mut self) -> bool {
-  //   self.str *= std::f32::consts::E.powi(-1);
-  //   if self.str <= SMALLEST_PHER_VALUE {return false;}
-  //   true
-  // }
-  // fn combine(&mut self, sacrifice:Self) {
-  //   todo!()
-  // }
 
 
 impl PherMap {
@@ -47,40 +31,63 @@ impl PherMap {
       map:HashMap::new(),
     }
   }
-  pub fn add(&mut self, goal:Goal, loyalty:u32, rowcol:(usize,usize)) {
-    let at_pos:Option<&mut HashMap<(Goal, u32),f32>> = self.map.get_mut(&rowcol);
-    if let Some(pos) = at_pos {
-      let keys:Vec<&(Goal,u32)> = pos.keys().clone().collect();
-      for i in keys {
-        // Checks to see if there is a pher of this loyalty and goal at this location
-        if i == &(goal,loyalty) {
-          if let Some(e)= pos.get_mut(i) {
-            *e += PHER_FULL_STR;
-          } else { panic!("Dude. Just cry")}
+  // tbh, this whole function is probably broken. Its so jank, idek
+  pub fn add(&mut self, golo:(Goal, u32), rowcol:(usize,usize)) {
+    // check if there is anything at that location
+    if let Some(pos) = self.map.get_mut(&rowcol) {
+      let pos:&mut HashMap<(Goal,u32),f32> = pos;
+      // check if there is any matching goal-loyalty pair at that location
+      let pairs:Vec<(Goal,u32)> = pos.keys().copied().collect();
+      for i in pairs {
+        if i == golo {
+          *(pos.get_mut(&golo).unwrap_or(&mut 0.0)) += PHER_FULL_STR;
           return;
         }
       }
-      let key = (goal,loyalty);
-      pos.insert(key,PHER_FULL_STR);
-      
+      // add new goal-loyalty pair for that location, return
+      pos.insert(golo,PHER_FULL_STR);
     } else {
-      let inkey = (goal,loyalty);
-      let outkey = rowcol;
-      let entry:HashMap<(Goal,u32), f32> = HashMap::from([(inkey,PHER_FULL_STR)]);
-      self.map.insert(outkey,entry);
+      self.map.insert(
+        rowcol,
+        HashMap::from(
+          [(golo,PHER_FULL_STR)]
+        )
+      );
     }
   }
-  // pub fn spread(&mut self) -> Option<Vec<Pher>> {
-  //   let mut holder = Vec::new();
-  //   if self.fade() {return None}
-  //   for x in -1..1 {
-  //     for y in -1..1 {
-  //       let mut new = Pher::new_from(&self);
-  //       new.pos.x = new.pos.x.floor() + x as f32;
-  //       new.pos.y = new.pos.y.floor() + y as f32;
-  //       holder.push(new);
-  //     }
-  //   }
-  //   Some(holder)
-  // }
+  
+  pub fn spread(&mut self, pos:(usize, usize), golo:(Goal, u32)) {
+    if !self.fade(pos, golo) {
+      if self.map.get(&pos).unwrap().len() == 0 {
+        self.map.remove(&pos);
+      } else {
+        self.map.get_mut(&pos).unwrap().remove(&golo);
+      }
+      return;
+    }
+    for x in -1..1 {
+      for y in -1..1 {
+        // get the pos
+        let x:i32 = x;
+        let y:i32 = y;
+        let posx = if x.is_negative() {
+          pos.0.saturating_sub(x.abs() as usize)
+        } else {
+          pos.0.saturating_add(x as usize)
+        };
+        let posy = if y.is_negative() {
+          pos.1.saturating_sub(y.abs() as usize)
+        } else {
+          pos.1.saturating_add(y as usize)
+        };
+        self.add(golo, (posx,posy));
+      }
+    }
+  }
+  fn fade(&mut self, pos:(usize, usize), golo:(Goal, u32)) -> bool {
+    let mut pher:f32 = *self.map.get_mut(&pos).unwrap().get_mut(&golo).unwrap();
+    pher *= std::f32::consts::E.powi(-1);
+    if &pher <= &SMALLEST_PHER_VALUE {return false;}
+    true
+  }
 }
