@@ -26,7 +26,7 @@ pub struct PherMap {
 
 
 impl PherMap {
-  fn new(loyalty: u32,x:usize,y:usize) -> Self {
+  pub fn new(x:usize,y:usize) -> Self {
     PherMap {
       map:HashMap::new(),
     }
