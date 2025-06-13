@@ -18,34 +18,35 @@ struct Antdata {
   vel:Vec2, // vel
   age:usize, // age
 }
+
 #[derive(Clone, Debug)]
-struct Queen {
+pub struct Queen {
   data:Antdata,
   hp:f32, // health
   mass:f32, // food stored
 }
 #[derive(Clone, Debug)]
-struct Worker {
+pub struct Worker {
   data:Antdata,
   goal:Goal,
   attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
   mass:f32, // food held
 }
 #[derive(Clone, Debug)]
-struct Explorer {
+pub struct Explorer {
   data:Antdata,
   goal:Goal,
   attacked:(bool,bool), // health value irrelevent, 2 attacks by worker/single by solider kills
 }
 #[derive(Clone, Debug)]
-struct Soldier {
+pub struct Soldier {
   data:Antdata,
   goal:Goal,
   hp:f32, // health
   dmg:f32, // damage accumulated that round
 }
 #[derive(Clone, Debug)]
-struct Defender {
+pub struct Defender {
   data:Antdata,
   goal:Goal,
   hp:f32, // health

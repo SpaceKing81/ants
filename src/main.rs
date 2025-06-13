@@ -1,7 +1,9 @@
 use crate::consts::*;
+use crate::world::*;
 use macroquad::prelude::*;
 
 mod matrix;
+mod world;
 mod ants;
 mod pher;
 mod food;
